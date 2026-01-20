@@ -1,12 +1,20 @@
 import { GoogleGenAI } from "@google/genai";
 import { User, TrainingType } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 const COACH_MODEL = "gemini-3-flash-preview";
+
+// Helper to create the AI instance just before the call, as per guidelines.
+// Throws a specific error if GEMINI_API_KEY is not available.
+const getGenAIInstance = () => {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error("API_KEY_MISSING");
+  }
+  return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+};
 
 export const getCareerAdvice = async (user: User): Promise<string> => {
   try {
+    const ai = getGenAIInstance(); // Create instance right before call
     const prompt = `
       Tu es un officier supérieur expérimenté chez les Sapeurs-Pompiers.
       Analyse le profil suivant :
@@ -25,14 +33,19 @@ export const getCareerAdvice = async (user: User): Promise<string> => {
     });
     
     return response.text || "Impossible de générer un conseil pour le moment.";
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini Coach Error:", error);
+    // Propagate API_KEY_MISSING or check for other API key related errors from the SDK
+    if (error.message.includes("API_KEY_MISSING") || (error.message && error.message.includes("API Key must be set")) || (error.message && error.message.includes("Requested entity was not found."))) {
+      throw new Error("API_KEY_ERROR");
+    }
     return "Service de coaching indisponible.";
   }
 };
 
 export const generateTrainingDescription = async (title: string, type: TrainingType): Promise<string> => {
   try {
+    const ai = getGenAIInstance(); // Create instance right before call
     const prompt = `
       Rédige une description professionnelle et engageante pour une formation de Sapeurs-Pompiers.
       Titre: ${title}
@@ -48,8 +61,11 @@ export const generateTrainingDescription = async (title: string, type: TrainingT
     });
 
     return response.text || "Description non disponible.";
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini Gen Error:", error);
+    if (error.message.includes("API_KEY_MISSING") || (error.message && error.message.includes("API Key must be set")) || (error.message && error.message.includes("Requested entity was not found."))) {
+      throw new Error("API_KEY_ERROR");
+    }
     return "Erreur lors de la génération de la description.";
   }
 };

@@ -46,3 +46,15 @@ export interface ToastMessage {
   message: string;
   type: ToastType;
 }
+
+// Define the AIStudio interface globally once
+export interface AIStudio {
+  hasSelectedApiKey: () => Promise<boolean>;
+  openSelectKey: () => Promise<void>;
+}
+
+declare global {
+  interface Window {
+    aistudio?: AIStudio;
+  }
+}
