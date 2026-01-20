@@ -1,0 +1,5 @@
+{
+  "name": "FireTrained",
+  "description": "A PWA for firefighters to manage internal training, qualifications, and operational readiness (FCES) with AI coaching.",
+  "requestFramePermissions": []
+}

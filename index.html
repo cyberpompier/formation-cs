@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+    <meta name="theme-color" content="#dc2626" />
+    <meta name="description" content="Gestion des formations Sapeurs-Pompiers" />
+    <title>FireTrained</title>
+    <link rel="manifest" href="/public/manifest.json" />
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/dc2626/ffffff.png?text=FT" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              fire: {
+                red: '#dc2626',
+                dark: '#0f172a',
+                navy: '#1e293b',
+                light: '#f1f5f9'
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* Safe area spacing for mobile PWA */
+      body {
+        padding-bottom: env(safe-area-inset-bottom);
+        overscroll-behavior-y: none; /* Prevent pull-to-refresh */
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.12.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.37.0",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
+  }
+}
+</script>
+</head>
+  <body class="bg-slate-50 text-slate-900 select-none">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
