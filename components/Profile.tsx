@@ -48,8 +48,8 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
     setIsEditing(false);
   };
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
   // Helper pour les blocs d'affichage avec texte BLANC FORCÉ
@@ -74,7 +74,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
             {formData.profilePic ? (
               <img src={formData.profilePic} alt="Profile" className="w-full h-full object-cover" />
             ) : (
-              getInitials(formData.name)
+              getInitials(formData.firstName, formData.lastName)
             )}
           </div>
           {isEditing && (
@@ -92,9 +92,20 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-fire-red transition-colors">👤</span>
                 <input
                   type="text"
-                  name="name"
-                  placeholder="Nom complet"
-                  value={formData.name}
+                  name="firstName"
+                  placeholder="Prénom"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:border-fire-red focus:ring-4 focus:ring-fire-red/10 outline-none font-bold text-slate-800 transition-all bg-slate-50"
+                />
+              </div>
+              <div className="relative group">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-fire-red transition-colors">📛</span>
+                <input
+                  type="text"
+                  name="lastName"
+                  placeholder="Nom"
+                  value={formData.lastName}
                   onChange={handleInputChange}
                   className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:border-fire-red focus:ring-4 focus:ring-fire-red/10 outline-none font-bold text-slate-800 transition-all bg-slate-50"
                 />
@@ -116,7 +127,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
             </div>
           ) : (
             <div className="space-y-2">
-              <DisplayBlock icon="🧑‍🚒" value={user.name} highlight />
+              <DisplayBlock icon="🧑‍🚒" value={`${user.firstName} ${user.lastName}`} highlight />
               <DisplayBlock icon="🎖️" value={user.rank} />
             </div>
           )}

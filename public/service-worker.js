@@ -2,9 +2,9 @@ const CACHE_NAME = 'firetrained-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/manifest.json',
-  '/public/icon-192.png', // Added for PWA
-  '/public/icon-512.png', // Added for PWA
+  '/manifest.json', // Changed path as per PWA guidelines for root serving
+  '/icon-192.png',  // Changed path as per PWA guidelines for root serving
+  '/icon-512.png',  // Changed path as per PWA guidelines for root serving
 ];
 
 self.addEventListener('install', (event) => {

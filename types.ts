@@ -25,7 +25,8 @@ export enum TrainingType {
 
 export interface User {
   id: string;
-  name: string;
+  firstName: string; // Changed from 'name'
+  lastName: string;  // Changed from 'name'
   rank: Rank;
   center: string;
   sdis: string;
@@ -60,16 +61,15 @@ export interface ToastMessage {
   type: ToastType;
 }
 
+// FIX: Add 'readonly' modifier to 'aistudio' property in the global Window interface.
+// This resolves potential conflicts with existing global declarations (e.g., from the environment)
+// that might implicitly or explicitly declare `aistudio` as readonly.
 declare global {
-  // Define AIStudio in global scope to allow merging with environment-provided types
-  interface AIStudio {
-    hasSelectedApiKey: () => Promise<boolean>;
-    openSelectKey: () => Promise<void>;
-  }
-
   interface Window {
-    // Augment Window with aistudio property, matching the platform's existing non-optional type
-    aistudio: AIStudio;
+    readonly aistudio: { // Added 'readonly' here
+      hasSelectedApiKey: () => Promise<boolean>;
+      openSelectKey: () => Promise<void>;
+    };
   }
 }
 

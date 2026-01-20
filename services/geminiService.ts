@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { User, TrainingType } from "../types";
 
@@ -20,6 +19,8 @@ export const getCareerAdvice = async (user: User): Promise<string> => {
     const prompt = `
       Tu es un officier supérieur expérimenté chez les Sapeurs-Pompiers.
       Analyse le profil suivant :
+      - Nom: ${user.lastName}
+      - Prénom: ${user.firstName}
       - Grade: ${user.rank}
       - Qualifications: ${user.qualifications.join(', ')}
       - FCES (Recyclage) à jour: ${user.fcesValid ? 'Oui' : 'Non'}

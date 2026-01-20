@@ -9,7 +9,7 @@ interface PersonnelListProps {
 const PersonnelList: React.FC<PersonnelListProps> = ({ users, onToggleFCES }) => {
   // Sort: Invalid FCES first, then by name
   const sortedUsers = [...users].sort((a, b) => {
-    if (a.fcesValid === b.fcesValid) return a.name.localeCompare(b.name);
+    if (a.fcesValid === b.fcesValid) return a.lastName.localeCompare(b.lastName); // Sort by last name
     return a.fcesValid ? 1 : -1;
   });
 
@@ -40,7 +40,7 @@ const PersonnelList: React.FC<PersonnelListProps> = ({ users, onToggleFCES }) =>
           {sortedUsers.map((u) => (
             <li key={u.id} className="p-4 border-b border-slate-50 last:border-0 flex items-center justify-between">
               <div>
-                <p className="font-bold text-slate-800">{u.rank} {u.name}</p>
+                <p className="font-bold text-slate-800">{u.rank} {u.firstName} {u.lastName}</p>
                 <p className="text-xs text-slate-500">{u.center} • {u.qualifications.length} Qualifs</p>
               </div>
               <div className="flex flex-col items-end gap-1">

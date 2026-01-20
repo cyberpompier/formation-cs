@@ -5,7 +5,8 @@ export const MOCK_CURRENT_USER_ID = 'u1';
 export const INITIAL_USERS: User[] = [
   {
     id: 'u1',
-    name: 'Jean Dupont',
+    firstName: 'Jean', // Changed from 'name'
+    lastName: 'Dupont',  // Changed from 'name'
     rank: Rank.CPL,
     center: 'CS Paris-Sud',
     sdis: 'SDIS 75',
@@ -20,13 +21,14 @@ export const INITIAL_USERS: User[] = [
   },
   {
     id: 'u2',
-    name: 'Marie Curie',
+    firstName: 'Marie', // Changed from 'name'
+    lastName: 'Curie',  // Changed from 'name'
     rank: Rank.LTN,
     center: 'CS Lyon',
     sdis: 'SDIS 69',
     email: 'marie.curie@sdis69.fr',
     phone: '0798765432',
-    profilePic: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABsSFhgfFhgYJhIfJsgmMjIuNSo2OTtWSjZJbHNtZ2tYYSxMd5rQ4OjT4XzYFOTxMhMfKSEwKykPFSyYvL+y27//2wBDAd/mJTMtMTtmY2x+g4QoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wABEIAAoACgMBIgACEQEDEQH/xAAZAAEBAQEBAAAAAAAAAAAAAAADAgEFB//EABwQAQEAAwEBAQAAAAAAAAAAAAADAAECBCExA//aAAwDAQACEAMQAAAKY77G7u0P/8QAFxAAAwEAAAAAAAAAAAAAAAAAAAIDBP/aAAgBAQABBQJq7Xm0tXJ4X//EABkRAQACAwAAAAAAAAAAAAAAAAABABARQP/aAAgBAREBPwGK9aH/xAAXEQADAQAAAAAAAAAAAAAAAAAAARBC/9oACAECEQE/AasS//xAAZEAEAAgMAAAAAAAAAAAAAAAABABFBUf/aAAgBAAETPwD5t3s//8QAHBABAAIDAQEBAAAAAAAAAAAAAQACEQIxAyFh/9oACAEBAAE/B9DytJ/U5L2q2Xg6H/9k=',
+    profilePic: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABsSFhgfFhgYJhIfJsgmMjIuNSo2OTtWSjZJbHNtZ2tYYSxMd5rQ4OjT4XzYFOTxMhMfKSEwKykPFSyYvL+y27//2wBDAd/mJTMtMTtmY2x+g4QoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wABEIAAoACgMBIgACEQEDEQH/xAAZAAEBAQEBAAAAAAAAAAAAAAADAgEFB//EABwQAQEAAwEBAQAAAAAAAAAAAAADAAECBCExA//aAAwBAAQBAp6jvsaO7Q//EABcAAwEAAAAAAAAAAAAAAAAAAAIDBP/aAAgBAgABBQJq7Xm0tXJ4X//EABkRAQACAwAAAAAAAAAAAAAAAAABABARQP/aAAgBAxAREwGK9aH/xAAXEQADAQAAAAAAAAAAAAAAAAAAARBC/9oACAECEQE/AasS//xAAZEAEAAgMAAAAAAAAAAAAAAAABABFBUf/aAAgBAgETPwD5t3s//8QAHBABAAIDAQEBAAAAAAAAAAAAAQACEQIxAyFh/9oACAEBAAE/B9DytJ/U5L2q2Xg6H/9k=',
     fcesValid: true,
     fcesDate: '2024-01-20',
     qualifications: ['PSE2', 'FDF3', 'GOC3', 'INC2', 'COD1'],
@@ -35,7 +37,8 @@ export const INITIAL_USERS: User[] = [
   },
   {
     id: 'u3',
-    name: 'Paul Durand',
+    firstName: 'Paul', // Changed from 'name'
+    lastName: 'Durand',  // Changed from 'name'
     rank: Rank.SAP,
     center: 'CS Paris-Sud',
     sdis: 'SDIS 75',
