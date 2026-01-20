@@ -51,6 +51,10 @@ export interface Training {
   registeredUserIds: string[];
   prerequisites: string[];
   image?: string;
+  trainer1?: string; // New field for trainer 1
+  trainer2?: string; // New field for trainer 2
+  startTime?: string; // New field for start time
+  durationDays?: number; // New field for duration in days
 }
 
 export type ToastType = 'success' | 'error' | 'info';

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TrainingType } from '../types';
+import { ALL_QUALIFICATIONS, TrainingType } from '../types';
 import { generateTrainingDescription } from '../services/geminiService';
 
 interface CreateTrainingProps {
@@ -10,9 +10,16 @@ const CreateTraining: React.FC<CreateTrainingProps> = ({ onCreate }) => {
   const [title, setTitle] = useState('');
   const [type, setType] = useState<TrainingType>(TrainingType.INC);
   const [date, setDate] = useState('');
+  const [startTime, setStartTime] = useState(''); // New state for start time
+  const [durationDays, setDurationDays] = useState(1); // New state for duration
   const [slots, setSlots] = useState(6);
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
+  const [image, setImage] = useState(''); // New state for image URL
+  const [trainer1, setTrainer1] = useState(''); // New state for trainer 1
+  const [trainer2, setTrainer2] = useState(''); // New state for trainer 2
+  const [selectedPrerequisites, setSelectedPrerequisites] = useState<string[]>([]); // New state for prerequisites
+
   const [generating, setGenerating] = useState(false);
   const [apiKeySelected, setApiKeySelected] = useState(false);
   const [showApiKeyPrompt, setShowApiKeyPrompt] = useState(false);
@@ -99,18 +106,49 @@ const CreateTraining: React.FC<CreateTrainingProps> = ({ onCreate }) => {
     }
   };
 
+  const handleTogglePrerequisite = (qual: string) => {
+    setSelectedPrerequisites(prev =>
+      prev.includes(qual) ? prev.filter(q => q !== qual) : [...prev, qual]
+    );
+  };
+
+  const handleGenerateRandomImage = () => {
+    setImage(`https://picsum.photos/400/200?random=${Date.now()}`);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onCreate({
       title,
       type,
       date,
+      startTime, // Add start time
+      durationDays, // Add duration in days
       slots,
       location,
       description,
-      image: `https://picsum.photos/400/200?random=${Date.now()}`
+      image: image || `https://picsum.photos/400/200?random=${Date.now()}`, // Use provided image or generate random
+      trainer1, // Add trainer 1
+      trainer2, // Add trainer 2
+      prerequisites: selectedPrerequisites // Add selected prerequisites
     });
+    // Reset form fields
+    setTitle('');
+    setType(TrainingType.INC);
+    setDate('');
+    setStartTime('');
+    setDurationDays(1);
+    setSlots(6);
+    setLocation('');
+    setDescription('');
+    setImage('');
+    setTrainer1('');
+    setTrainer2('');
+    setSelectedPrerequisites([]);
   };
+
+  // Common input styling for consistency
+  const inputStyle = "w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fire-red focus:outline-none bg-white text-slate-900 placeholder-slate-400";
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
@@ -124,7 +162,7 @@ const CreateTraining: React.FC<CreateTrainingProps> = ({ onCreate }) => {
             required
             value={title}
             onChange={e => setTitle(e.target.value)}
-            className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fire-red focus:outline-none"
+            className={inputStyle}
             placeholder="Ex: Secours Routier - Niveau 1"
           />
         </div>
@@ -135,7 +173,7 @@ const CreateTraining: React.FC<CreateTrainingProps> = ({ onCreate }) => {
             <select 
               value={type}
               onChange={e => setType(e.target.value as TrainingType)}
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fire-red focus:outline-none"
+              className={inputStyle}
             >
               {Object.values(TrainingType).map(t => (
                 <option key={t} value={t}>{t}</option>
@@ -150,19 +188,42 @@ const CreateTraining: React.FC<CreateTrainingProps> = ({ onCreate }) => {
               min="1"
               value={slots}
               onChange={e => setSlots(parseInt(e.target.value))}
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fire-red focus:outline-none"
+              className={inputStyle}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Date</label>
+            <input 
+              type="date" 
+              required
+              value={date}
+              onChange={e => setDate(e.target.value)}
+              className={inputStyle}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Heure de Début</label>
+            <input 
+              type="time" 
+              value={startTime}
+              onChange={e => setStartTime(e.target.value)}
+              className={inputStyle}
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Date</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Durée (Jours)</label>
           <input 
-            type="date" 
+            type="number" 
             required
-            value={date}
-            onChange={e => setDate(e.target.value)}
-            className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fire-red focus:outline-none"
+            min="1"
+            value={durationDays}
+            onChange={e => setDurationDays(parseInt(e.target.value))}
+            className={inputStyle}
           />
         </div>
 
@@ -173,10 +234,56 @@ const CreateTraining: React.FC<CreateTrainingProps> = ({ onCreate }) => {
             required
             value={location}
             onChange={e => setLocation(e.target.value)}
-            className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fire-red focus:outline-none"
+            className={inputStyle}
             placeholder="Ex: Caserne Nord"
           />
         </div>
+
+        {/* Pré-requis Tags */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-slate-700">Pré-requis</label>
+          <div className="flex flex-wrap gap-2">
+            {ALL_QUALIFICATIONS.map(qual => (
+              <button
+                key={qual}
+                type="button"
+                onClick={() => handleTogglePrerequisite(qual)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                  selectedPrerequisites.includes(qual)
+                    ? 'bg-fire-red text-white shadow-md'
+                    : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'
+                }`}
+              >
+                {qual}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Trainers */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Formateur 1</label>
+            <input 
+              type="text" 
+              value={trainer1}
+              onChange={e => setTrainer1(e.target.value)}
+              className={inputStyle}
+              placeholder="Ex: Cdt. Smith"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Formateur 2 (optionnel)</label>
+            <input 
+              type="text" 
+              value={trainer2}
+              onChange={e => setTrainer2(e.target.value)}
+              className={inputStyle}
+              placeholder="Ex: Sgt. Johnson"
+            />
+          </div>
+        </div>
+
 
         <div>
           <div className="flex justify-between items-center mb-1">
@@ -195,11 +302,34 @@ const CreateTraining: React.FC<CreateTrainingProps> = ({ onCreate }) => {
             rows={4}
             value={description}
             onChange={e => setDescription(e.target.value)}
-            className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fire-red focus:outline-none resize-none"
+            className={`${inputStyle} resize-none`}
             placeholder="Description du stage..."
           ></textarea>
           {aiError && <p className="text-red-600 text-xs mt-1">{aiError}</p>}
         </div>
+
+        {/* Image Bandeau */}
+        <div>
+          <div className="flex justify-between items-center mb-1">
+            <label className="block text-sm font-medium text-slate-700">Image de la Formation (URL)</label>
+            <button 
+              type="button"
+              onClick={handleGenerateRandomImage}
+              className="text-xs font-bold text-slate-600 hover:text-slate-800 flex items-center gap-1 bg-slate-100 px-3 py-1.5 rounded-lg transition-colors"
+            >
+               📷 Générer Aléatoire
+            </button>
+          </div>
+          <input 
+            type="url" 
+            value={image}
+            onChange={e => setImage(e.target.value)}
+            className={inputStyle}
+            placeholder="https://picsum.photos/400/200?random=..."
+          />
+          {image && <img src={image} alt="Prévisualisation" className="mt-2 w-full h-32 object-cover rounded-lg border border-slate-200" />}
+        </div>
+
 
         {showApiKeyPrompt && (
           <div className="bg-red-50 p-4 rounded-xl text-sm leading-relaxed text-center text-red-700">

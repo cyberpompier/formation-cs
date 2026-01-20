@@ -62,8 +62,11 @@ const App = () => {
     const newTraining: Training = {
       ...data as Training,
       id: `t${Date.now()}`,
-      registeredUserIds: [],
-      prerequisites: []
+      // Ensure default values for arrays if not provided by form
+      registeredUserIds: data.registeredUserIds || [],
+      prerequisites: data.prerequisites || [],
+      // Ensure image is set, if not provided by form, a default will be used in CreateTraining
+      image: data.image 
     };
     setTrainings(prev => [...prev, newTraining]);
     showToast('Formation publiée avec succès', 'success');
