@@ -104,6 +104,7 @@ const App = () => {
               <TrainingList 
                 trainings={trainings} 
                 user={currentUser} 
+                allUsers={users} // Pass all users to TrainingList
                 onRegister={handleRegister} 
                 onUnregister={handleUnregister}
               />

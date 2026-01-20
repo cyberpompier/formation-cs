@@ -1,20 +1,34 @@
 import React, { useState } from 'react';
 import { Training, TrainingType, User } from '../types';
+import TrainingDetailModal from './TrainingDetailModal'; // Import the new modal component
 
 interface TrainingListProps {
   trainings: Training[];
   user: User;
+  allUsers: User[]; // Prop added to pass all users for participant details in modal
   onRegister: (trainingId: string) => void;
   onUnregister: (trainingId: string) => void;
 }
 
-const TrainingList: React.FC<TrainingListProps> = ({ trainings, user, onRegister, onUnregister }) => {
+const TrainingList: React.FC<TrainingListProps> = ({ trainings, user, allUsers, onRegister, onUnregister }) => {
   const [filter, setFilter] = useState<TrainingType | 'ALL'>('ALL');
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedTraining, setSelectedTraining] = useState<Training | null>(null);
 
   const filteredTrainings = trainings.filter(t => filter === 'ALL' || t.type === filter);
 
   // Filters Scroll View
   const filters = ['ALL', ...Object.values(TrainingType)];
+
+  const openTrainingDetail = (training: Training) => {
+    setSelectedTraining(training);
+    setShowDetailModal(true);
+  };
+
+  const closeTrainingDetail = () => {
+    setShowDetailModal(false);
+    setSelectedTraining(null);
+  };
 
   return (
     <div className="space-y-4">
@@ -41,33 +55,33 @@ const TrainingList: React.FC<TrainingListProps> = ({ trainings, user, onRegister
           const isRegistered = training.registeredUserIds.includes(user.id);
           const isFull = training.registeredUserIds.length >= training.slots;
           
-          // Logic: Can Register?
-          let canRegister = true;
-          let blockReason = '';
+          // Logic for card button: Can Register?
+          let canRegisterForCard = true;
+          let blockReasonForCard = '';
 
           // 1. Check FCES
           if (!user.fcesValid && training.type !== TrainingType.SUAP) {
-            canRegister = false;
-            blockReason = 'FCES invalide';
+            canRegisterForCard = false;
+            blockReasonForCard = 'FCES invalide';
           }
           
           // 2. Check Prerequisites
           const missingPreqs = training.prerequisites.filter(p => !user.qualifications.includes(p));
           if (missingPreqs.length > 0) {
-            canRegister = false;
-            blockReason = `Manque: ${missingPreqs.join(', ')}`;
+            canRegisterForCard = false;
+            blockReasonForCard = `Manque: ${missingPreqs.join(', ')}`;
           }
 
           // 3. Check Slots
           if (isFull && !isRegistered) {
-            canRegister = false;
-            blockReason = 'Complet';
+            canRegisterForCard = false;
+            blockReasonForCard = 'Complet';
           }
 
           return (
             <div key={training.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
               <div className="relative h-32 bg-slate-200">
-                <img src={training.image} alt={training.title} className="w-full h-full object-cover" />
+                <img src={training.image || `https://picsum.photos/400/200?random=${training.id}`} alt={training.title} className="w-full h-full object-cover" />
                 <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-md">
                   {training.type}
                 </div>
@@ -88,22 +102,22 @@ const TrainingList: React.FC<TrainingListProps> = ({ trainings, user, onRegister
 
                   {isRegistered ? (
                     <button 
-                      onClick={() => onUnregister(training.id)}
+                      onClick={() => openTrainingDetail(training)} // Open modal to unregister
                       className="w-full py-2.5 rounded-lg border-2 border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors"
                     >
                       Se désister
                     </button>
                   ) : (
                     <button 
-                      onClick={() => onRegister(training.id)}
-                      disabled={!canRegister}
+                      onClick={() => openTrainingDetail(training)} // Open modal to register
+                      disabled={!canRegisterForCard}
                       className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-colors shadow-sm ${
-                        canRegister 
+                        canRegisterForCard 
                           ? 'bg-fire-navy text-white hover:bg-slate-800 active:scale-[0.98] transform' 
                           : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                       }`}
                     >
-                      {canRegister ? "S'inscrire" : `Indisponible (${blockReason})`}
+                      {canRegisterForCard ? "S'inscrire" : `Indisponible (${blockReasonForCard})`}
                     </button>
                   )}
                 </div>
@@ -115,6 +129,18 @@ const TrainingList: React.FC<TrainingListProps> = ({ trainings, user, onRegister
           <p className="text-center text-slate-400 py-10">Aucune formation trouvée.</p>
         )}
       </div>
+
+      {/* Training Detail Modal */}
+      {showDetailModal && selectedTraining && (
+        <TrainingDetailModal
+          training={selectedTraining}
+          user={user}
+          allUsers={allUsers}
+          onRegister={onRegister}
+          onUnregister={onUnregister}
+          onClose={closeTrainingDetail}
+        />
+      )}
     </div>
   );
 };
