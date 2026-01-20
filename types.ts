@@ -1,9 +1,18 @@
 export enum Rank {
   SAP = 'Sapeur',
+  S1C = 'Sapeur 1ère Classe',
   CPL = 'Caporal',
+  CCH = 'Caporal-Chef',
+  SGT = 'Sergent',
   SCH = 'Sergent-Chef',
+  ADJ = 'Adjudant',
+  ADC = 'Adjudant-Chef',
   LTN = 'Lieutenant',
-  CDT = 'Commandant'
+  CPT = 'Capitaine',
+  CDT = 'Commandant',
+  LCL = 'Lieutenant-Colonel',
+  COL = 'Colonel',
+  CGL = 'Contrôleur Général'
 }
 
 export enum TrainingType {
@@ -19,8 +28,12 @@ export interface User {
   name: string;
   rank: Rank;
   center: string;
-  fcesValid: boolean; // Formation de Maintien des Acquis validity
-  fcesDate: string; // ISO Date
+  sdis: string;
+  email: string;
+  phone: string;
+  profilePic: string;
+  fcesValid: boolean;
+  fcesDate: string;
   qualifications: string[];
   isAdmin: boolean;
   isTrainer: boolean;
@@ -35,7 +48,7 @@ export interface Training {
   description: string;
   slots: number;
   registeredUserIds: string[];
-  prerequisites: string[]; // List of qualification codes required
+  prerequisites: string[];
   image?: string;
 }
 
@@ -47,14 +60,20 @@ export interface ToastMessage {
   type: ToastType;
 }
 
-// Define the AIStudio interface globally once
-export interface AIStudio {
-  hasSelectedApiKey: () => Promise<boolean>;
-  openSelectKey: () => Promise<void>;
-}
-
 declare global {
+  // Define AIStudio in global scope to allow merging with environment-provided types
+  interface AIStudio {
+    hasSelectedApiKey: () => Promise<boolean>;
+    openSelectKey: () => Promise<void>;
+  }
+
   interface Window {
-    aistudio?: AIStudio;
+    // Augment Window with aistudio property, matching the platform's existing non-optional type
+    aistudio: AIStudio;
   }
 }
+
+export const ALL_QUALIFICATIONS = [
+  'PSE1', 'PSE2', 'CRAP1', 'CRAP2', 'INC1', 'INC2', 'FDF1', 'FDF2', 'GOC1', 'GOC2', 'GOC3',
+  'COD1', 'COD2', 'COD3', 'TOP', 'SAP', 'LOG'
+];

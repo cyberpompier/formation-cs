@@ -2,7 +2,9 @@ const CACHE_NAME = 'firetrained-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/public/icon-192.png', // Added for PWA
+  '/public/icon-512.png', // Added for PWA
 ];
 
 self.addEventListener('install', (event) => {

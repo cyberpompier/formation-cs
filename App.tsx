@@ -10,6 +10,19 @@ import Profile from './components/Profile';
 import { MOCK_CURRENT_USER_ID, INITIAL_USERS, INITIAL_TRAININGS } from './constants';
 import { User, Training, ToastMessage, ToastType } from './types';
 
+// Service Worker Registration for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(registration => {
+        console.log('SW registered: ', registration);
+      })
+      .catch(registrationError => {
+        console.log('SW registration failed: ', registrationError);
+      });
+  });
+}
+
 const App = () => {
   // State Simulation
   const [users, setUsers] = useState<User[]>(INITIAL_USERS);
@@ -65,6 +78,18 @@ const App = () => {
     }));
   };
 
+  const handleUpdateUser = (updatedUser: User) => {
+    setUsers(prev => prev.map(u => (u.id === updatedUser.id ? updatedUser : u)));
+    showToast('Profil mis à jour !', 'success');
+  };
+
+  const handleLogout = () => {
+    // In a real app, this would clear authentication tokens and redirect to a login page.
+    // For this mock app, we'll just show a toast.
+    showToast('Déconnexion réussie.', 'info');
+    // Optionally: set MOCK_CURRENT_USER_ID to null or redirect
+  };
+
   return (
     <HashRouter>
       <Routes>
@@ -89,7 +114,7 @@ const App = () => {
             path="personnel" 
             element={currentUser.isAdmin ? <PersonnelList users={users} onToggleFCES={handleToggleFCES} /> : <Navigate to="/" />} 
           />
-          <Route path="profile" element={<Profile user={currentUser} />} />
+          <Route path="profile" element={<Profile user={currentUser} onUpdateUser={handleUpdateUser} onLogout={handleLogout} />} />
         </Route>
       </Routes>
 
