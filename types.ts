@@ -61,18 +61,10 @@ export interface ToastMessage {
   type: ToastType;
 }
 
-// FIX: Add 'readonly' modifier to 'aistudio' property in the global Window interface.
-// This resolves potential conflicts with existing global declarations (e.g., from the environment)
-// that might implicitly or explicitly declare `aistudio` as readonly.
-declare global {
-  interface Window {
-    readonly aistudio: { // Added 'readonly' here
-      hasSelectedApiKey: () => Promise<boolean>;
-      openSelectKey: () => Promise<void>;
-    };
-  }
-}
-
+// The 'window.aistudio' object and its methods are assumed to be pre-configured, valid, and accessible
+// in the execution context where the API client is initialized.
+// If an 'AIStudio' type is globally defined by the environment, explicitly redeclaring it here
+// causes a conflict. Removing this declaration allows TypeScript to correctly infer the existing global type.
 export const ALL_QUALIFICATIONS = [
   'PSE1', 'PSE2', 'CRAP1', 'CRAP2', 'INC1', 'INC2', 'FDF1', 'FDF2', 'GOC1', 'GOC2', 'GOC3',
   'COD1', 'COD2', 'COD3', 'TOP', 'SAP', 'LOG'
