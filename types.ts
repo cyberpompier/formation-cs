@@ -55,6 +55,7 @@ export interface Training {
   trainer2?: string; // New field for trainer 2
   startTime?: string; // New field for start time
   durationDays?: number; // New field for duration in days
+  isCompleted?: boolean; // New field to mark if training is completed/validated
 }
 
 export type ToastType = 'success' | 'error' | 'info';

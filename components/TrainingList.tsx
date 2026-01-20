@@ -4,13 +4,14 @@ import TrainingDetailModal from './TrainingDetailModal'; // Import the new modal
 
 interface TrainingListProps {
   trainings: Training[];
-  user: User;
-  allUsers: User[]; // Prop added to pass all users for participant details in modal
+  user: User; // Renamed to currentUser within App.tsx, but kept here for now
+  allUsers: User[]; 
   onRegister: (trainingId: string) => void;
   onUnregister: (trainingId: string) => void;
+  onValidateTraining: (trainingId: string) => void; // New prop for validation
 }
 
-const TrainingList: React.FC<TrainingListProps> = ({ trainings, user, allUsers, onRegister, onUnregister }) => {
+const TrainingList: React.FC<TrainingListProps> = ({ trainings, user, allUsers, onRegister, onUnregister, onValidateTraining }) => {
   const [filter, setFilter] = useState<TrainingType | 'ALL'>('ALL');
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedTraining, setSelectedTraining] = useState<Training | null>(null);
@@ -134,10 +135,11 @@ const TrainingList: React.FC<TrainingListProps> = ({ trainings, user, allUsers, 
       {showDetailModal && selectedTraining && (
         <TrainingDetailModal
           training={selectedTraining}
-          user={user}
+          currentUser={user} // Pass currentUser
           allUsers={allUsers}
           onRegister={onRegister}
           onUnregister={onUnregister}
+          onValidateTraining={onValidateTraining} // Pass new prop
           onClose={closeTrainingDetail}
         />
       )}

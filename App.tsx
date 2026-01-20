@@ -66,7 +66,8 @@ const App = () => {
       registeredUserIds: data.registeredUserIds || [],
       prerequisites: data.prerequisites || [],
       // Ensure image is set, if not provided by form, a default will be used in CreateTraining
-      image: data.image 
+      image: data.image,
+      isCompleted: false // New trainings are not completed by default
     };
     setTrainings(prev => [...prev, newTraining]);
     showToast('Formation publiée avec succès', 'success');
@@ -93,6 +94,16 @@ const App = () => {
     // Optionally: set MOCK_CURRENT_USER_ID to null or redirect
   };
 
+  const handleValidateTraining = (trainingId: string) => {
+    setTrainings(prev => prev.map(t => {
+      if (t.id === trainingId) {
+        return { ...t, isCompleted: true };
+      }
+      return t;
+    }));
+    showToast('Formation validée avec succès !', 'success');
+  };
+
   return (
     <HashRouter>
       <Routes>
@@ -104,9 +115,10 @@ const App = () => {
               <TrainingList 
                 trainings={trainings} 
                 user={currentUser} 
-                allUsers={users} // Pass all users to TrainingList
+                allUsers={users} 
                 onRegister={handleRegister} 
                 onUnregister={handleUnregister}
+                onValidateTraining={handleValidateTraining} // Pass new prop
               />
             } 
           />

@@ -1,44 +1,50 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Training, User, Rank } from '../types';
 
 interface TrainingDetailModalProps {
   training: Training;
-  user: User;
-  allUsers: User[]; // Added to resolve participants' names
+  currentUser: User; // Changed from 'user' to 'currentUser' for clarity
+  allUsers: User[];
   onRegister: (trainingId: string) => void;
   onUnregister: (trainingId: string) => void;
+  onValidateTraining: (trainingId: string) => void; // New prop for validation
   onClose: () => void;
 }
 
 const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
   training,
-  user,
+  currentUser, // Use currentUser here
   allUsers,
   onRegister,
   onUnregister,
+  onValidateTraining, // Destructure new prop
   onClose,
 }) => {
-  const isRegistered = training.registeredUserIds.includes(user.id);
+  const [showConfirmValidation, setShowConfirmValidation] = useState(false);
+  const [showConfirmUnregister, setShowConfirmUnregister] = useState(false); // New state for unregister confirmation
+
+  const isRegistered = training.registeredUserIds.includes(currentUser.id);
   const isFull = training.registeredUserIds.length >= training.slots;
+  const isTrainingCompleted = training.isCompleted; // Check if training is completed
 
   let canRegister = true;
   let blockReason = '';
 
   // 1. Check FCES
-  if (!user.fcesValid && training.type !== 'Secourisme') {
+  if (!currentUser.fcesValid && training.type !== 'Secourisme') {
     canRegister = false;
     blockReason = 'FCES invalide';
   }
 
   // 2. Check Prerequisites
-  const missingPreqs = training.prerequisites.filter(p => !user.qualifications.includes(p));
+  const missingPreqs = training.prerequisites.filter(p => !currentUser.qualifications.includes(p));
   if (missingPreqs.length > 0) {
     canRegister = false;
     blockReason = `Manque: ${missingPreqs.join(', ')}`;
   }
 
   // 3. Check Slots
-  if (isFull && !isRegistered) { // Only block if full AND user is not already registered
+  if (isFull && !isRegistered) { // Only block if full AND currentUser is not already registered
     canRegister = false;
     blockReason = 'Complet';
   }
@@ -70,10 +76,29 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
     }
   };
 
+  const handleValidateClick = () => {
+    setShowConfirmValidation(true);
+  };
+
+  const handleConfirmValidation = () => {
+    onValidateTraining(training.id);
+    setShowConfirmValidation(false);
+    onClose(); // Close the main modal after validation
+  };
+
+  const handleUnregisterClick = () => {
+    setShowConfirmUnregister(true);
+  };
+
+  const handleConfirmUnregister = () => {
+    onUnregister(training.id);
+    setShowConfirmUnregister(false);
+    onClose(); // Close the main modal after unregistration
+  };
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center animate-in fade-in duration-300">
-      {/* Modal Container: Full screen now */}
+      {/* Main Modal Container */}
       <div className="bg-white rounded-none shadow-xl w-full h-full relative animate-in zoom-in-95 ease-out duration-300 flex flex-col">
         {/* Close Button */}
         <button
@@ -90,10 +115,15 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
           <div className="absolute top-3 right-3 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm font-semibold">
             {training.type}
           </div>
+          {isTrainingCompleted && (
+            <div className="absolute bottom-3 left-3 bg-green-600 text-white text-xs px-3 py-1.5 rounded-full font-semibold">
+              ✅ Validée
+            </div>
+          )}
         </div>
 
-        {/* Content Area - now flexible to fill remaining space and scroll */}
-        <div className="p-6 flex-1 overflow-y-auto flex flex-col">
+        {/* Scrollable Content Area */}
+        <div className="p-6 flex-1 overflow-y-auto">
           <h2 className="text-2xl font-bold text-slate-900 mb-2 leading-tight">{training.title}</h2>
           <p className="text-sm text-slate-600 mb-4">{training.description}</p>
 
@@ -148,7 +178,7 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
                   <span
                     key={prereq}
                     className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      user.qualifications.includes(prereq)
+                      currentUser.qualifications.includes(prereq)
                         ? 'bg-green-100 text-green-700'
                         : 'bg-red-100 text-red-700'
                     }`}
@@ -176,12 +206,23 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
               <p className="text-sm text-slate-500 italic">Aucun participant inscrit pour le moment.</p>
             )}
           </div>
+        </div>
 
-          {/* Action Button Area */}
-          <div className="mt-auto pt-6 border-t border-slate-100 pb-[env(safe-area-inset-bottom)]"> {/* Add safe area padding */}
+        {/* Action Button Area - Sticky Footer */}
+        <div className="px-6 py-4 border-t border-slate-100 bg-white pb-[env(safe-area-inset-bottom)]">
+          <div className="flex flex-col gap-3"> {/* Use flex column to stack buttons */}
+            {(currentUser.isAdmin || currentUser.isTrainer) && !isTrainingCompleted && (
+              <button
+                onClick={handleValidateClick}
+                className="w-full py-3 rounded-xl font-semibold text-base transition-colors shadow-lg bg-green-600 text-white hover:bg-green-700 active:scale-[0.98] transform"
+              >
+                Valider la formation
+              </button>
+            )}
+
             {isRegistered ? (
               <button
-                onClick={() => { onUnregister(training.id); onClose(); }}
+                onClick={handleUnregisterClick} // Open confirmation modal first
                 className="w-full py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-semibold text-base hover:bg-slate-50 transition-colors shadow-sm active:scale-[0.98]"
               >
                 Se désister
@@ -199,6 +240,7 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
                 {canRegister ? "S'inscrire" : `Indisponible (${blockReason})`}
               </button>
             )}
+          </div>
             {!canRegister && !isRegistered && (
               <p className="text-red-600 text-xs mt-3 text-center">
                 {blockReason === 'FCES invalide' && '⚠️ Votre FCES est expirée. Mettez-le à jour pour vous inscrire.'}
@@ -207,8 +249,55 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
               </p>
             )}
           </div>
-        </div>
       </div>
+
+      {/* Confirmation Modal for Validation */}
+      {showConfirmValidation && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center animate-in zoom-in-95 ease-out duration-200">
+            <p className="text-lg font-bold text-slate-800 mb-4">Confirmer la validation</p>
+            <p className="text-sm text-slate-600 mb-6">Êtes-vous sûr de vouloir valider cette formation ? Cette action est irréversible.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConfirmValidation(false)}
+                className="flex-1 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleConfirmValidation}
+                className="flex-1 py-2.5 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors"
+              >
+                Oui, valider
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal for Unregister */}
+      {showConfirmUnregister && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center animate-in zoom-in-95 ease-out duration-200">
+            <p className="text-lg font-bold text-slate-800 mb-4">Confirmer le désistement</p>
+            <p className="text-sm text-slate-600 mb-6">Êtes-vous sûr de vouloir vous désister de cette formation ?</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConfirmUnregister(false)}
+                className="flex-1 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleConfirmUnregister}
+                className="flex-1 py-2.5 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors"
+              >
+                Oui, me désister
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
