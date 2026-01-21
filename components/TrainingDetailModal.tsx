@@ -9,6 +9,8 @@ interface TrainingDetailModalProps {
   onRegister: (trainingId: string) => void;
   onUnregister: (trainingId: string) => void;
   onValidateTraining: (trainingId: string) => void;
+  onEditTraining: (training: Training) => void;
+  onDeleteTraining: (trainingId: string) => void;
   onClose: () => void;
 }
 
@@ -19,13 +21,21 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
   onRegister,
   onUnregister,
   onValidateTraining,
+  onEditTraining,
+  onDeleteTraining,
   onClose,
 }) => {
   const [showConfirmUnregister, setShowConfirmUnregister] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<Training>(training);
 
   const isRegistered = training.registeredUserIds.includes(currentUser.id);
   const isFull = training.registeredUserIds.length >= training.slots;
   const isTrainingCompleted = training.isCompleted;
+  
+  // Peut éditer si admin ou formateur
+  const canEdit = currentUser.isTrainer || currentUser.isAdmin;
 
   let canRegister = true;
   let blockReason = '';
@@ -60,10 +70,35 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
       case Rank.CCH: return '🎖️';
       case Rank.SGT:
       case Rank.SCH: return '🏅';
+      case Rank.SGT:
+      case Rank.SCH: return '🏅';
       case Rank.ADJ:
       case Rank.ADC: return '🏆';
       default: return '👤';
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'slots' ? parseInt(value) : value
+    }));
+  };
+
+  const handleSave = () => {
+    onEditTraining(formData);
+    setIsEditing(false);
+  };
+
+  const handleDelete = () => {
+    onDeleteTraining(training.id);
+    onClose();
+  };
+
+  const handleCancelEdit = () => {
+    setFormData(training);
+    setIsEditing(false);
   };
 
   return (
@@ -71,6 +106,16 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
     <div className="fixed inset-0 bg-slate-900/98 backdrop-blur-lg z-[60] flex items-center justify-center animate-in fade-in duration-300">
       <div className="bg-white rounded-none w-full h-full relative animate-in slide-in-from-bottom duration-500 flex flex-col shadow-2xl overflow-hidden">
         
+        {/* BOUTON ÉDITION - En haut à gauche */}
+        {!isEditing && canEdit && (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="absolute top-6 left-6 z-[70] w-14 h-14 flex items-center justify-center bg-white/90 rounded-full shadow-2xl transition-all active:scale-75 border border-slate-100 text-slate-900 hover:text-fire-red hover:bg-white"
+          >
+            ✏️
+          </button>
+        )}
+
         {/* Bouton de Fermeture flottant - z-index 70 pour rester au-dessus de tout */}
         <button
           onClick={onClose}
@@ -80,9 +125,9 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
         </button>
 
         {/* 1. Hero Section (Fixe en haut) */}
-        <div className="relative h-60 bg-slate-200 shrink-0">
+        <div className="relative h-60 bg-slate-200 shrink-0 group">
           <img 
-            src={training.image || `https://picsum.photos/400/200?random=${training.id}`} 
+            src={formData.image || `https://picsum.photos/400/200?random=${training.id}`} 
             alt={training.title} 
             className="w-full h-full object-cover" 
           />
@@ -92,8 +137,32 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
             <span className="bg-fire-red text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-xl mb-3 inline-block">
               {training.type}
             </span>
-            <h2 className="text-2xl font-black text-white leading-none uppercase italic tracking-tighter">{training.title}</h2>
+            
+            {isEditing ? (
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                className="w-full bg-transparent border-b-2 border-white/50 focus:border-fire-red text-2xl font-black text-white uppercase italic tracking-tighter outline-none placeholder-white/50"
+              />
+            ) : (
+              <h2 className="text-2xl font-black text-white leading-none uppercase italic tracking-tighter">{training.title}</h2>
+            )}
           </div>
+
+          {isEditing && (
+             <div className="absolute top-6 left-24 right-24">
+                <input 
+                  type="text" 
+                  name="image" 
+                  value={formData.image || ''} 
+                  onChange={handleInputChange}
+                  placeholder="URL de l'image" 
+                  className="w-full bg-black/50 backdrop-blur text-white text-xs p-2 rounded-lg border border-white/20"
+                />
+             </div>
+          )}
         </div>
 
         {/* 2. Contenu de la formation (Déroulable) */}
@@ -103,20 +172,54 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100">
               <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Date</p>
-              <p className="font-black text-slate-900 text-base uppercase italic">{new Date(training.date).toLocaleDateString('fr-FR')}</p>
+              {isEditing ? (
+                 <input
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleInputChange}
+                  className="w-full bg-white p-2 rounded-lg font-bold text-slate-900 text-sm outline-none border focus:border-fire-red"
+                 />
+              ) : (
+                <p className="font-black text-slate-900 text-base uppercase italic">{new Date(formData.date).toLocaleDateString('fr-FR')}</p>
+              )}
             </div>
             <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100">
-              <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Places</p>
-              <p className="font-black text-slate-900 text-base uppercase italic">{training.slots - training.registeredUserIds.length} libres</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Places Totales</p>
+              {isEditing ? (
+                 <input
+                  type="number"
+                  name="slots"
+                  value={formData.slots}
+                  onChange={handleInputChange}
+                  className="w-full bg-white p-2 rounded-lg font-bold text-slate-900 text-sm outline-none border focus:border-fire-red"
+                 />
+              ) : (
+                <p className="font-black text-slate-900 text-base uppercase italic">
+                  {training.slots - training.registeredUserIds.length} libres / {training.slots}
+                </p>
+              )}
             </div>
             <div className="col-span-2 bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100 flex justify-between items-center">
-              <div>
+              <div className="w-full mr-4">
                 <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Lieu de rendez-vous</p>
-                <p className="font-black text-slate-900 uppercase italic truncate max-w-[200px]">{training.location}</p>
+                {isEditing ? (
+                   <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleInputChange}
+                    className="w-full bg-white p-2 rounded-lg font-bold text-slate-900 text-sm outline-none border focus:border-fire-red"
+                   />
+                ) : (
+                  <p className="font-black text-slate-900 uppercase italic truncate">{formData.location}</p>
+                )}
               </div>
-              <a href={googleMapsLink} target="_blank" rel="noopener noreferrer" className="bg-white p-3 rounded-xl shadow-md border border-slate-200 text-fire-red active:scale-90 transition-transform">
-                📍
-              </a>
+              {!isEditing && (
+                <a href={googleMapsLink} target="_blank" rel="noopener noreferrer" className="bg-white p-3 rounded-xl shadow-md border border-slate-200 text-fire-red active:scale-90 transition-transform">
+                  📍
+                </a>
+              )}
             </div>
           </div>
 
@@ -125,43 +228,79 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
             <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em] mb-3 border-l-4 border-fire-red pl-3">
               Programme du stage
             </h3>
-            <p className="text-slate-600 leading-relaxed font-bold text-sm">
-              {training.description}
-            </p>
+            {isEditing ? (
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                rows={5}
+                className="w-full bg-slate-50 p-4 rounded-2xl font-bold text-sm text-slate-900 leading-relaxed outline-none border focus:border-fire-red resize-none"
+              />
+            ) : (
+              <p className="text-slate-600 leading-relaxed font-bold text-sm">
+                {formData.description}
+              </p>
+            )}
           </section>
 
-          {/* Liste des participants */}
-          <section>
-            <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em] mb-4 border-l-4 border-fire-red pl-3">
-              Agents déjà engagés ({registeredParticipants.length})
-            </h3>
-            <div className="space-y-3 mb-8">
-              {registeredParticipants.length > 0 ? (
-                registeredParticipants.map(participant => (
-                  <div key={participant.id} className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-100 rounded-[1.5rem]">
-                    <span className="text-2xl shrink-0">{renderRankIcon(participant.rank)}</span>
-                    <div className="flex-1">
-                      <p className="font-black text-slate-900 leading-none mb-1 uppercase italic">
-                        {participant.rank} {participant.lastName}
-                      </p>
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{participant.center}</p>
+          {/* Liste des participants (Caché en mode édition pour focus) */}
+          {!isEditing && (
+            <section>
+              <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em] mb-4 border-l-4 border-fire-red pl-3">
+                Agents déjà engagés ({registeredParticipants.length})
+              </h3>
+              <div className="space-y-3 mb-8">
+                {registeredParticipants.length > 0 ? (
+                  registeredParticipants.map(participant => (
+                    <div key={participant.id} className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-100 rounded-[1.5rem]">
+                      <span className="text-2xl shrink-0">{renderRankIcon(participant.rank)}</span>
+                      <div className="flex-1">
+                        <p className="font-black text-slate-900 leading-none mb-1 uppercase italic">
+                          {participant.rank} {participant.lastName}
+                        </p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{participant.center}</p>
+                      </div>
+                      {participant.id === currentUser.id && (
+                        <span className="bg-fire-red text-white text-[8px] font-black px-3 py-1 rounded-full uppercase shadow-lg">Moi</span>
+                      )}
                     </div>
-                    {participant.id === currentUser.id && (
-                      <span className="bg-fire-red text-white text-[8px] font-black px-3 py-1 rounded-full uppercase shadow-lg">Moi</span>
-                    )}
+                  ))
+                ) : (
+                  <div className="text-center py-8 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
+                    <p className="text-slate-300 font-black italic text-[10px] uppercase tracking-widest">En attente d'inscriptions</p>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-8 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
-                  <p className="text-slate-300 font-black italic text-[10px] uppercase tracking-widest">En attente d'inscriptions</p>
-                </div>
-              )}
-            </div>
-          </section>
+                )}
+              </div>
+            </section>
+          )}
 
-          {/* ACTIONS : Placées sous la liste des participants */}
+          {/* ACTIONS */}
           <div className="space-y-4 pt-4 border-t border-slate-100">
-            {isTrainingCompleted ? (
+            {isEditing ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                   <button
+                    onClick={handleCancelEdit}
+                    className="w-full py-5 rounded-[1.5rem] bg-slate-100 text-slate-600 font-black text-[12px] uppercase tracking-widest active:scale-95 transition-all"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    className="w-full py-5 rounded-[1.5rem] bg-fire-red text-white font-black text-[12px] uppercase tracking-widest shadow-xl shadow-red-200 active:scale-95 transition-all"
+                  >
+                    Enregistrer
+                  </button>
+                </div>
+                
+                <button
+                  onClick={() => setShowConfirmDelete(true)}
+                  className="w-full py-4 rounded-[1.5rem] border-2 border-red-50 text-red-500 font-black text-[10px] uppercase tracking-widest hover:bg-red-50 active:scale-95 transition-all"
+                >
+                  Supprimer ce stage
+                </button>
+              </div>
+            ) : isTrainingCompleted ? (
               <div className="w-full py-5 rounded-[1.5rem] bg-green-50 border-2 border-green-100 text-green-700 font-black text-[12px] uppercase tracking-widest text-center italic">
                 ✓ Session validée
               </div>
@@ -228,6 +367,30 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
                 className="py-5 rounded-2xl bg-red-600 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-red-200 active:scale-95 transition-all"
               >
                 Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Suppression (Overlay supérieur) */}
+      {showConfirmDelete && (
+        <div className="fixed inset-0 bg-fire-red/90 z-[100] flex items-center justify-center p-8 animate-in zoom-in duration-200 backdrop-blur-sm">
+          <div className="bg-white rounded-[3rem] p-10 w-full max-w-sm text-center shadow-2xl border-4 border-red-500">
+            <div className="text-6xl mb-6">🗑️</div>
+            <h4 className="text-2xl font-black text-red-600 mb-4 uppercase italic leading-none">Supprimer ?</h4>
+            <p className="text-sm text-slate-500 font-bold mb-8 leading-relaxed uppercase tracking-widest">
+              Cette action est irréversible. Le stage sera retiré du catalogue.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <button onClick={() => setShowConfirmDelete(false)} className="py-5 rounded-2xl bg-slate-100 text-slate-600 font-black text-xs uppercase tracking-widest active:scale-95 transition-all">
+                Annuler
+              </button>
+              <button 
+                onClick={handleDelete}
+                className="py-5 rounded-2xl bg-red-600 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-red-200 active:scale-95 transition-all"
+              >
+                Supprimer
               </button>
             </div>
           </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -72,6 +73,16 @@ const App = () => {
     showToast('Formation publiée avec succès', 'success');
   };
 
+  const handleEditTraining = (updatedTraining: Training) => {
+    setTrainings(prev => prev.map(t => t.id === updatedTraining.id ? updatedTraining : t));
+    showToast('Modification enregistrée', 'success');
+  };
+
+  const handleDeleteTraining = (trainingId: string) => {
+    setTrainings(prev => prev.filter(t => t.id !== trainingId));
+    showToast('Formation supprimée définitivement', 'info');
+  };
+
   const handleToggleFCES = (userId: string) => {
     setUsers(prev => prev.map(u => {
       if (u.id === userId) {
@@ -115,6 +126,8 @@ const App = () => {
                 onRegister={handleRegister} 
                 onUnregister={handleUnregister}
                 onValidateTraining={handleValidateTraining}
+                onEditTraining={handleEditTraining}
+                onDeleteTraining={handleDeleteTraining}
               />
             } 
           />

@@ -10,9 +10,11 @@ interface TrainingListProps {
   onRegister: (trainingId: string) => void;
   onUnregister: (trainingId: string) => void;
   onValidateTraining: (trainingId: string) => void;
+  onEditTraining: (training: Training) => void;
+  onDeleteTraining: (trainingId: string) => void;
 }
 
-const TrainingList: React.FC<TrainingListProps> = ({ trainings, user, allUsers, onRegister, onUnregister, onValidateTraining }) => {
+const TrainingList: React.FC<TrainingListProps> = ({ trainings, user, allUsers, onRegister, onUnregister, onValidateTraining, onEditTraining, onDeleteTraining }) => {
   const [filter, setFilter] = useState<TrainingType | 'ALL'>('ALL');
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedTrainingId, setSelectedTrainingId] = useState<string | null>(null);
@@ -152,6 +154,8 @@ const TrainingList: React.FC<TrainingListProps> = ({ trainings, user, allUsers, 
           onRegister={onRegister}
           onUnregister={onUnregister}
           onValidateTraining={onValidateTraining}
+          onEditTraining={onEditTraining}
+          onDeleteTraining={onDeleteTraining}
           onClose={closeTrainingDetail}
         />
       )}
