@@ -62,6 +62,13 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
     </div>
   );
 
+  // Helper pour les textes d'aide (gris clair)
+  const InputHelper: React.FC<{ text: string }> = ({ text }) => (
+    <p className="text-[10px] text-slate-400 font-bold mt-1 ml-14 italic tracking-wide">
+      Exemple : {text}
+    </p>
+  );
+
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-500">
       {/* Section En-tête : Photo & Grade Principal */}
@@ -89,7 +96,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
           {isEditing ? (
             <div className="space-y-5">
               <div className="relative group">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-fire-red transition-colors">👤</span>
+                <span className="absolute left-4 top-4 text-slate-400 group-focus-within:text-fire-red transition-colors">👤</span>
                 <input
                   type="text"
                   name="firstName"
@@ -98,9 +105,10 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
                   onChange={handleInputChange}
                   className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:border-fire-red focus:ring-4 focus:ring-fire-red/10 outline-none font-bold text-slate-800 transition-all bg-slate-50"
                 />
+                <InputHelper text="Jean, Marie, Pierre..." />
               </div>
               <div className="relative group">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-fire-red transition-colors">📛</span>
+                <span className="absolute left-4 top-4 text-slate-400 group-focus-within:text-fire-red transition-colors">📛</span>
                 <input
                   type="text"
                   name="lastName"
@@ -109,9 +117,10 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
                   onChange={handleInputChange}
                   className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:border-fire-red focus:ring-4 focus:ring-fire-red/10 outline-none font-bold text-slate-800 transition-all bg-slate-50"
                 />
+                <InputHelper text="Dupont, Martin..." />
               </div>
               <div className="relative group">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-fire-red transition-colors">🎖️</span>
+                <span className="absolute left-4 top-4 text-slate-400 group-focus-within:text-fire-red transition-colors">🎖️</span>
                 <select
                   name="rank"
                   value={formData.rank}
@@ -123,6 +132,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
                   ))}
                 </select>
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">▼</span>
+                <InputHelper text="Sélectionnez votre grade actuel" />
               </div>
             </div>
           ) : (
@@ -152,7 +162,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
           {isEditing ? (
             <div className="space-y-4">
               <div className="relative group">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">✉️</span>
+                <span className="absolute left-4 top-4 text-slate-400">✉️</span>
                 <input
                   type="email"
                   name="email"
@@ -161,9 +171,10 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
                   onChange={handleInputChange}
                   className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:border-fire-red focus:ring-4 focus:ring-fire-red/10 outline-none text-sm transition-all bg-slate-50 font-semibold text-slate-800"
                 />
+                <InputHelper text="jean.dupont@sdis.fr" />
               </div>
               <div className="relative group">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">📱</span>
+                <span className="absolute left-4 top-4 text-slate-400">📱</span>
                 <input
                   type="tel"
                   name="phone"
@@ -172,6 +183,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
                   onChange={handleInputChange}
                   className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:border-fire-red focus:ring-4 focus:ring-fire-red/10 outline-none text-sm transition-all bg-slate-50 font-semibold text-slate-800"
                 />
+                <InputHelper text="06 12 34 56 78" />
               </div>
             </div>
           ) : (
@@ -189,26 +201,28 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
           {isEditing ? (
             <div className="space-y-4">
               <div className="relative group">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🏢</span>
+                <span className="absolute left-4 top-4 text-slate-400">🏢</span>
                 <input
                   type="text"
                   name="center"
-                  placeholder="Centre de Secours"
+                  placeholder="Centre de Secours / Unité"
                   value={formData.center}
                   onChange={handleInputChange}
                   className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:border-fire-red focus:ring-4 focus:ring-fire-red/10 outline-none text-sm transition-all bg-slate-50 font-semibold text-slate-800"
                 />
+                <InputHelper text="CS Principal, CIS Lyon, CPI Nord..." />
               </div>
               <div className="relative group">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">📍</span>
+                <span className="absolute left-4 top-4 text-slate-400">📍</span>
                 <input
                   type="text"
                   name="sdis"
-                  placeholder="SDIS"
+                  placeholder="Département / SDIS"
                   value={formData.sdis}
                   onChange={handleInputChange}
                   className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:border-fire-red focus:ring-4 focus:ring-fire-red/10 outline-none text-sm transition-all bg-slate-50 font-semibold text-slate-800"
                 />
+                <InputHelper text="SDIS 75, BSPP, SDIS 33..." />
               </div>
             </div>
           ) : (
