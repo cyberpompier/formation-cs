@@ -67,18 +67,18 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-slate-900/98 backdrop-blur-lg z-50 flex items-center justify-center animate-in fade-in duration-300">
-      <div className="bg-white rounded-none w-full h-full relative animate-in slide-in-from-bottom duration-500 flex flex-col shadow-2xl">
+      <div className="bg-white rounded-none w-full h-full relative animate-in slide-in-from-bottom duration-500 flex flex-col shadow-2xl overflow-hidden">
         
-        {/* Fermeture */}
+        {/* Bouton de Fermeture flottant */}
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 text-4xl z-20 w-14 h-14 flex items-center justify-center bg-white/90 rounded-full shadow-2xl transition-all active:scale-75"
+          className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 text-4xl z-50 w-14 h-14 flex items-center justify-center bg-white/90 rounded-full shadow-2xl transition-all active:scale-75 border border-slate-100"
         >
           &times;
         </button>
 
-        {/* Hero Section simple */}
-        <div className="relative h-64 bg-slate-200 shrink-0">
+        {/* 1. Hero Section (Fixe en haut) */}
+        <div className="relative h-60 bg-slate-200 shrink-0">
           <img 
             src={training.image || `https://picsum.photos/400/200?random=${training.id}`} 
             alt={training.title} 
@@ -86,57 +86,57 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
           
-          <div className="absolute bottom-8 left-8 right-8">
-            <span className="bg-fire-red text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-xl mb-4 inline-block">
+          <div className="absolute bottom-6 left-6 right-6">
+            <span className="bg-fire-red text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-xl mb-3 inline-block">
               {training.type}
             </span>
-            <h2 className="text-3xl font-black text-white leading-none uppercase italic tracking-tighter">{training.title}</h2>
+            <h2 className="text-2xl font-black text-white leading-none uppercase italic tracking-tighter">{training.title}</h2>
           </div>
         </div>
 
-        {/* Contenu de la formation */}
-        <div className="flex-1 overflow-y-auto p-8 space-y-10 pb-40">
+        {/* 2. Contenu de la formation (Déroulable) */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-8 pb-12">
           
-          {/* Dashboard simplifié */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
-              <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Date de convocation</p>
-              <p className="font-black text-slate-900 text-lg uppercase italic">{new Date(training.date).toLocaleDateString('fr-FR')}</p>
+          {/* Dashboard d'informations */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100">
+              <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Date</p>
+              <p className="font-black text-slate-900 text-base uppercase italic">{new Date(training.date).toLocaleDateString('fr-FR')}</p>
             </div>
-            <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
-              <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Places restantes</p>
-              <p className="font-black text-slate-900 text-lg uppercase italic">{training.slots - training.registeredUserIds.length} / {training.slots}</p>
+            <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100">
+              <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Places</p>
+              <p className="font-black text-slate-900 text-base uppercase italic">{training.slots - training.registeredUserIds.length} libres</p>
             </div>
-            <div className="col-span-2 bg-slate-50 p-6 rounded-[2rem] border border-slate-100 flex justify-between items-center">
+            <div className="col-span-2 bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100 flex justify-between items-center">
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Lieu du stage</p>
-                <p className="font-black text-slate-900 uppercase italic truncate max-w-[220px]">{training.location}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Lieu de rendez-vous</p>
+                <p className="font-black text-slate-900 uppercase italic truncate max-w-[200px]">{training.location}</p>
               </div>
-              <a href={googleMapsLink} target="_blank" rel="noopener noreferrer" className="bg-white p-4 rounded-2xl shadow-md border border-slate-200 text-fire-red active:scale-90 transition-transform">
+              <a href={googleMapsLink} target="_blank" rel="noopener noreferrer" className="bg-white p-3 rounded-xl shadow-md border border-slate-200 text-fire-red active:scale-90 transition-transform">
                 📍
               </a>
             </div>
           </div>
 
-          {/* Description */}
+          {/* Description pédagogique */}
           <section>
-            <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em] mb-4 border-l-4 border-fire-red pl-3">
-              Objectifs du stage
+            <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em] mb-3 border-l-4 border-fire-red pl-3">
+              Programme du stage
             </h3>
             <p className="text-slate-600 leading-relaxed font-bold text-sm">
               {training.description}
             </p>
           </section>
 
-          {/* Liste des camarades inscrits */}
+          {/* Liste des participants */}
           <section>
             <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em] mb-4 border-l-4 border-fire-red pl-3">
-              Effectif engagé ({registeredParticipants.length})
+              Agents déjà engagés ({registeredParticipants.length})
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-3 mb-8">
               {registeredParticipants.length > 0 ? (
                 registeredParticipants.map(participant => (
-                  <div key={participant.id} className="flex items-center gap-4 p-5 bg-slate-50 border border-slate-100 rounded-[1.5rem] transition-all">
+                  <div key={participant.id} className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-100 rounded-[1.5rem]">
                     <span className="text-2xl shrink-0">{renderRankIcon(participant.rank)}</span>
                     <div className="flex-1">
                       <p className="font-black text-slate-900 leading-none mb-1 uppercase italic">
@@ -150,25 +150,23 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
                   </div>
                 ))
               ) : (
-                <div className="text-center py-10 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
-                  <p className="text-slate-300 font-black italic text-xs uppercase tracking-widest">Aucun agent inscrit</p>
+                <div className="text-center py-8 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
+                  <p className="text-slate-300 font-black italic text-[10px] uppercase tracking-widest">En attente d'inscriptions</p>
                 </div>
               )}
             </div>
           </section>
-        </div>
 
-        {/* FOOTER D'ACTION SIMPLE ET UNIQUE */}
-        <div className="p-8 border-t border-slate-100 bg-white shadow-[0_-20px_60px_rgba(0,0,0,0.05)] pb-[env(safe-area-inset-bottom)] fixed bottom-0 left-0 right-0 z-30">
-          <div className="flex flex-col gap-4">
+          {/* ACTIONS : Déplacées ici sous la liste des participants dans le flux du détail */}
+          <div className="space-y-4 pt-4 border-t border-slate-100">
             {isTrainingCompleted ? (
-              <div className="w-full py-6 rounded-[1.5rem] bg-green-50 border-2 border-green-100 text-green-700 font-black text-[12px] uppercase tracking-widest text-center italic shadow-sm">
-                ✓ Formation validée
+              <div className="w-full py-5 rounded-[1.5rem] bg-green-50 border-2 border-green-100 text-green-700 font-black text-[12px] uppercase tracking-widest text-center italic">
+                ✓ Session validée
               </div>
             ) : isRegistered ? (
               <button
                 onClick={() => setShowConfirmUnregister(true)}
-                className="w-full py-6 rounded-[1.5rem] bg-slate-100 text-slate-500 font-black text-[12px] uppercase tracking-widest border-2 border-slate-200 hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all active:scale-95"
+                className="w-full py-6 rounded-[1.5rem] bg-slate-900 text-white font-black text-[12px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
               >
                 Se désister de ce stage
               </button>
@@ -180,13 +178,13 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
                   className={`w-full py-6 rounded-[1.5rem] font-black text-[12px] uppercase tracking-widest shadow-2xl transition-all active:scale-95 ${
                     canRegister 
                       ? 'bg-fire-red text-white shadow-red-200' 
-                      : 'bg-slate-200 text-slate-400 cursor-not-allowed border-2 border-slate-300'
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed border-2 border-slate-300 shadow-none'
                   }`}
                 >
                   {canRegister ? "Confirmer mon inscription" : `Inscription bloquée`}
                 </button>
                 {!canRegister && (
-                  <p className="text-center text-[10px] font-black text-red-500 uppercase tracking-widest bg-red-50 py-2 rounded-xl border border-red-100">
+                  <p className="text-center text-[10px] font-black text-red-500 uppercase tracking-widest bg-red-50 py-3 rounded-2xl border border-red-100">
                     ⚠️ {blockReason}
                   </p>
                 )}
@@ -196,9 +194,9 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
         </div>
       </div>
 
-      {/* Confirmation Désistement */}
+      {/* Confirmation Désistement (Overlay supérieur) */}
       {showConfirmUnregister && (
-        <div className="fixed inset-0 bg-black/95 z-[60] flex items-center justify-center p-8 animate-in zoom-in duration-200">
+        <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-8 animate-in zoom-in duration-200">
           <div className="bg-white rounded-[3rem] p-10 w-full max-w-sm text-center shadow-2xl border border-slate-100">
             <div className="text-6xl mb-8">🚪</div>
             <h4 className="text-2xl font-black text-slate-900 mb-4 uppercase italic leading-none">Annuler ?</h4>
