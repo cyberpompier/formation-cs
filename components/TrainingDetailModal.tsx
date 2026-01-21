@@ -66,13 +66,14 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/98 backdrop-blur-lg z-50 flex items-center justify-center animate-in fade-in duration-300">
+    /* Passage à z-[60] pour recouvrir la barre de navigation z-50 */
+    <div className="fixed inset-0 bg-slate-900/98 backdrop-blur-lg z-[60] flex items-center justify-center animate-in fade-in duration-300">
       <div className="bg-white rounded-none w-full h-full relative animate-in slide-in-from-bottom duration-500 flex flex-col shadow-2xl overflow-hidden">
         
-        {/* Bouton de Fermeture flottant */}
+        {/* Bouton de Fermeture flottant - z-index 70 pour rester au-dessus de tout */}
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 text-4xl z-50 w-14 h-14 flex items-center justify-center bg-white/90 rounded-full shadow-2xl transition-all active:scale-75 border border-slate-100"
+          className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 text-4xl z-[70] w-14 h-14 flex items-center justify-center bg-white/90 rounded-full shadow-2xl transition-all active:scale-75 border border-slate-100"
         >
           &times;
         </button>
@@ -95,7 +96,7 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
         </div>
 
         {/* 2. Contenu de la formation (Déroulable) */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-8 pb-12">
+        <div className="flex-1 overflow-y-auto p-6 space-y-8 pb-24">
           
           {/* Dashboard d'informations */}
           <div className="grid grid-cols-2 gap-3">
@@ -157,7 +158,7 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
             </div>
           </section>
 
-          {/* ACTIONS : Déplacées ici sous la liste des participants dans le flux du détail */}
+          {/* ACTIONS : Placées sous la liste des participants */}
           <div className="space-y-4 pt-4 border-t border-slate-100">
             {isTrainingCompleted ? (
               <div className="w-full py-5 rounded-[1.5rem] bg-green-50 border-2 border-green-100 text-green-700 font-black text-[12px] uppercase tracking-widest text-center italic">
