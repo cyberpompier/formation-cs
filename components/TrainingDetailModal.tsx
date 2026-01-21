@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Training, User, Rank, ALL_QUALIFICATIONS, TrainingType } from '../types';
+import { isFcesValidForTraining } from '../utils/fces';
 
 interface TrainingDetailModalProps {
   training: Training;
@@ -40,9 +41,12 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
   let canRegister = true;
   let blockReason = '';
 
-  if (!currentUser.fcesValid && training.type !== 'Secourisme') {
+  // Vérification dynamique de la validité FCES pour la date du stage
+  const isFcesValidForThisTraining = isFcesValidForTraining(currentUser.fcesDate, training.date);
+
+  if (!isFcesValidForThisTraining && training.type !== TrainingType.SUAP) {
     canRegister = false;
-    blockReason = 'FCES expirée';
+    blockReason = 'FCES non valide à la date du stage';
   }
 
   const missingPreqs = training.prerequisites.filter(p => !currentUser.qualifications.includes(p));

@@ -71,6 +71,6 @@ export interface ToastMessage {
 // If an 'AIStudio' type is globally defined by the environment, explicitly redeclaring it here
 // causes a conflict. Removing this declaration allows TypeScript to correctly infer the existing global type.
 export const ALL_QUALIFICATIONS = [
-  'PSE1', 'PSE2', 'CRAP1', 'CRAP2', 'INC1', 'INC2', 'FDF1', 'FDF2', 'GOC1', 'GOC2', 'GOC3',
-  'COD1', 'COD2', 'COD3', 'TOP', 'SAP', 'LOG'
+  'PSE1', 'PSE2', 'INC1', 'INC2', 'FDF1', 'FDF2',
+  'COD1', 'COD2', 'COD3', 'COD4' , 'Permis B' , 'Permis C'
 ];

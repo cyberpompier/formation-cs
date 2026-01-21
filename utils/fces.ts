@@ -42,3 +42,23 @@ export const calculateFcesStatus = (lastTrainingDate: string): { status: FcesSta
     daysRemaining: diffDays
   };
 };
+
+/**
+ * Vérifie si un agent sera à jour de son FCES à la date d'un stage spécifique.
+ * Règle : Un recyclage en année N donne une validité jusqu'au 31/12/N+1.
+ */
+export const isFcesValidForTraining = (userFcesDate: string, trainingDate: string): boolean => {
+  if (!userFcesDate) return false;
+  
+  const fces = new Date(userFcesDate);
+  const training = new Date(trainingDate);
+  
+  if (isNaN(fces.getTime()) || isNaN(training.getTime())) return false;
+  
+  // Date de fin de validité : 31 Décembre de l'année suivant le recyclage
+  const expiryYear = fces.getFullYear() + 1;
+  const expiryDate = new Date(`${expiryYear}-12-31`);
+  
+  // L'agent peut s'inscrire si le stage a lieu avant ou le jour de l'expiration
+  return training <= expiryDate;
+};

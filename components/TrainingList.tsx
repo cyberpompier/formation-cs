@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Training, TrainingType, User } from '../types';
 import TrainingDetailModal from './TrainingDetailModal';
+import { isFcesValidForTraining } from '../utils/fces';
 
 interface TrainingListProps {
   trainings: Training[];
@@ -63,11 +64,14 @@ const TrainingList: React.FC<TrainingListProps> = ({ trainings, user, allUsers, 
           const missingPrereqs = training.prerequisites.filter(p => !user.qualifications.includes(p));
           const hasPrereqs = missingPrereqs.length === 0;
 
+          // Calcul dynamique de la validité FCES pour la date du stage
+          const isFcesValidForThisTraining = isFcesValidForTraining(user.fcesDate, training.date);
+
           let canRegister = true;
           let statusLabel = isRegistered ? "INSCRIT" : "DISPONIBLE";
 
           // Priorité des blocages
-          if (!user.fcesValid && training.type !== TrainingType.SUAP) {
+          if (!isFcesValidForThisTraining && training.type !== TrainingType.SUAP) {
             canRegister = false;
             statusLabel = "BLOQUÉ (FCES)";
           } else if (!hasPrereqs && !isRegistered) {
