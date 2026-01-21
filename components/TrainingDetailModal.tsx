@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { Training, User, Rank, ALL_QUALIFICATIONS, TrainingType } from '../types';
 import { isFcesValidForTraining } from '../utils/fces';
@@ -10,7 +9,7 @@ interface TrainingDetailModalProps {
   allUsers: User[];
   onRegister: (trainingId: string) => void;
   onUnregister: (trainingId: string) => void;
-  onValidateTraining: (trainingId: string) => void;
+  onValidateTraining: (trainingId: string, presentUserIds: string[]) => void;
   onEditTraining: (training: Training) => void;
   onDeleteTraining: (trainingId: string) => void;
   onClose: () => void;
@@ -30,15 +29,29 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
   const [showConfirmRegister, setShowConfirmRegister] = useState(false);
   const [showConfirmUnregister, setShowConfirmUnregister] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [showConfirmValidate, setShowConfirmValidate] = useState(false); // New state for validation confirmation
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Training>(training);
+
+  // Gestion de la feuille de présence (Checklist)
+  // Initialisé avec tous les inscrits marqués comme présents
+  const [attendance, setAttendance] = useState<Record<string, boolean>>(() => {
+    const initialState: Record<string, boolean> = {};
+    training.registeredUserIds.forEach(id => {
+      initialState[id] = true;
+    });
+    return initialState;
+  });
 
   const isRegistered = training.registeredUserIds.includes(currentUser.id);
   const isFull = training.registeredUserIds.length >= training.slots;
   const isTrainingCompleted = training.isCompleted;
   
-  // Peut éditer si admin ou formateur
+  // Peut éditer les infos : Admin ou Formateur
   const canEdit = currentUser.isTrainer || currentUser.isAdmin;
+  
+  // Peut clôturer/valider le stage : ADMIN SEULEMENT
+  const canValidate = currentUser.isAdmin;
 
   let canRegister = true;
   let blockReason = '';
@@ -109,6 +122,19 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
   const handleDelete = () => {
     onDeleteTraining(training.id);
     onClose();
+  };
+
+  const handleToggleAttendance = (userId: string) => {
+    setAttendance(prev => ({
+      ...prev,
+      [userId]: !prev[userId]
+    }));
+  };
+
+  const handleValidate = () => {
+    const presentUserIds = Object.keys(attendance).filter(id => attendance[id]);
+    onValidateTraining(training.id, presentUserIds);
+    setShowConfirmValidate(false);
   };
 
   const handleCancelEdit = () => {
@@ -439,52 +465,66 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
                   Supprimer ce stage
                 </button>
               </div>
-            ) : isTrainingCompleted ? (
-              <div className="w-full py-5 rounded-[1.5rem] bg-green-50 border-2 border-green-100 text-green-700 font-black text-[12px] uppercase tracking-widest text-center italic">
-                ✓ Session validée
-              </div>
-            ) : isRegistered ? (
-              <button
-                onClick={() => setShowConfirmUnregister(true)}
-                className="w-full py-6 rounded-[1.5rem] bg-slate-900 text-white font-black text-[12px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
-              >
-                Se désister de ce stage
-              </button>
             ) : (
-              <div className="space-y-3">
-                {/* Affichage des pré-requis manquants */}
-                {!isRegistered && missingPreqs.length > 0 && (
-                  <div className="bg-red-50 p-5 rounded-[2rem] border border-red-100 mb-2">
-                    <p className="text-[10px] font-black text-red-600 uppercase mb-3 tracking-widest flex items-center gap-2">
-                      <span className="animate-pulse">⚠️</span> Diplômes manquants à votre profil :
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {missingPreqs.map(p => (
-                        <span key={p} className="bg-fire-red text-white text-[10px] font-black px-3 py-1.5 rounded-xl shadow-md uppercase">
-                          {p}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+              <>
+                 {/* BOUTON ADMIN UNIQUEMENT: Valider le stage */}
+                 {canValidate && !isTrainingCompleted && (
+                   <button
+                     onClick={() => setShowConfirmValidate(true)}
+                     className="w-full py-4 rounded-[1.5rem] bg-green-600 text-white font-black text-[11px] uppercase tracking-widest shadow-xl shadow-green-200 active:scale-95 transition-all mb-2 flex items-center justify-center gap-2"
+                   >
+                     ✅ Valider / Clôturer le stage
+                   </button>
+                 )}
 
-                <button
-                  onClick={() => setShowConfirmRegister(true)}
-                  disabled={!canRegister}
-                  className={`w-full py-6 rounded-[1.5rem] font-black text-[12px] uppercase tracking-widest shadow-2xl transition-all active:scale-95 ${
-                    canRegister 
-                      ? 'bg-fire-red text-white shadow-red-200' 
-                      : 'bg-slate-200 text-slate-400 cursor-not-allowed border-2 border-slate-300 shadow-none'
-                  }`}
-                >
-                  {canRegister ? "Confirmer mon inscription" : `Inscription bloquée`}
-                </button>
-                {!canRegister && (
-                  <p className="text-center text-[10px] font-black text-red-500 uppercase tracking-widest bg-red-50 py-3 rounded-2xl border border-red-100">
-                    Motif : {blockReason}
-                  </p>
-                )}
-              </div>
+                 {isTrainingCompleted ? (
+                   <div className="w-full py-5 rounded-[1.5rem] bg-green-50 border-2 border-green-100 text-green-700 font-black text-[12px] uppercase tracking-widest text-center italic">
+                     ✓ Session validée et clôturée
+                   </div>
+                 ) : isRegistered ? (
+                   <button
+                     onClick={() => setShowConfirmUnregister(true)}
+                     className="w-full py-6 rounded-[1.5rem] bg-slate-900 text-white font-black text-[12px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+                   >
+                     Se désister de ce stage
+                   </button>
+                 ) : (
+                   <div className="space-y-3">
+                     {/* Affichage des pré-requis manquants */}
+                     {!isRegistered && missingPreqs.length > 0 && (
+                       <div className="bg-red-50 p-5 rounded-[2rem] border border-red-100 mb-2">
+                         <p className="text-[10px] font-black text-red-600 uppercase mb-3 tracking-widest flex items-center gap-2">
+                           <span className="animate-pulse">⚠️</span> Diplômes manquants à votre profil :
+                         </p>
+                         <div className="flex flex-wrap gap-2">
+                           {missingPreqs.map(p => (
+                             <span key={p} className="bg-fire-red text-white text-[10px] font-black px-3 py-1.5 rounded-xl shadow-md uppercase">
+                               {p}
+                             </span>
+                           ))}
+                         </div>
+                       </div>
+                     )}
+
+                     <button
+                       onClick={() => setShowConfirmRegister(true)}
+                       disabled={!canRegister}
+                       className={`w-full py-6 rounded-[1.5rem] font-black text-[12px] uppercase tracking-widest shadow-2xl transition-all active:scale-95 ${
+                         canRegister 
+                           ? 'bg-fire-red text-white shadow-red-200' 
+                           : 'bg-slate-200 text-slate-400 cursor-not-allowed border-2 border-slate-300 shadow-none'
+                       }`}
+                     >
+                       {canRegister ? "Confirmer mon inscription" : `Inscription bloquée`}
+                     </button>
+                     {!canRegister && (
+                       <p className="text-center text-[10px] font-black text-red-500 uppercase tracking-widest bg-red-50 py-3 rounded-2xl border border-red-100">
+                         Motif : {blockReason}
+                       </p>
+                     )}
+                   </div>
+                 )}
+              </>
             )}
           </div>
         </div>
@@ -528,6 +568,63 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
                 className="py-5 rounded-2xl bg-red-600 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-red-200 active:scale-95 transition-all"
               >
                 Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Validation Stage + Feuille d'Appel (Overlay supérieur) */}
+      {showConfirmValidate && (
+        <div className="fixed inset-0 bg-green-900/95 z-[100] flex items-center justify-center p-4 animate-in zoom-in duration-200">
+          <div className="bg-white rounded-[3rem] p-8 w-full max-w-sm text-center shadow-2xl border-4 border-green-500 flex flex-col max-h-[85vh]">
+            <div className="shrink-0">
+               <div className="text-6xl mb-4">✅</div>
+               <h4 className="text-2xl font-black text-green-600 mb-2 uppercase italic leading-none">Clôturer ?</h4>
+               <p className="text-[10px] text-slate-500 font-bold mb-4 leading-relaxed uppercase tracking-widest">
+                 Veuillez confirmer la présence des agents. Seuls les présents recevront leurs heures.
+               </p>
+            </div>
+
+            {/* Liste de présence (scrollable) */}
+            <div className="flex-1 overflow-y-auto mb-6 bg-slate-50 rounded-2xl border border-slate-200 p-2 space-y-2">
+               {registeredParticipants.map(p => (
+                 <div 
+                   key={p.id} 
+                   onClick={() => handleToggleAttendance(p.id)}
+                   className={`flex items-center justify-between p-3 rounded-xl cursor-pointer border-2 transition-all active:scale-95 ${
+                     attendance[p.id] ? 'bg-white border-green-500 shadow-md' : 'bg-slate-100 border-transparent opacity-60'
+                   }`}
+                 >
+                   <div className="flex items-center gap-3 text-left">
+                     <span className="text-xl">{renderRankIcon(p.rank)}</span>
+                     <div>
+                       <p className={`text-xs font-black uppercase ${attendance[p.id] ? 'text-slate-900' : 'text-slate-400 decoration-line-through'}`}>
+                         {p.lastName}
+                       </p>
+                     </div>
+                   </div>
+                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs border-2 ${
+                     attendance[p.id] ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-slate-300 text-transparent'
+                   }`}>
+                     ✓
+                   </div>
+                 </div>
+               ))}
+               {registeredParticipants.length === 0 && (
+                 <p className="text-center text-slate-400 py-4 text-xs font-bold uppercase">Aucun inscrit</p>
+               )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 shrink-0">
+              <button onClick={() => setShowConfirmValidate(false)} className="py-5 rounded-2xl bg-slate-100 text-slate-600 font-black text-xs uppercase tracking-widest active:scale-95 transition-all">
+                Annuler
+              </button>
+              <button 
+                onClick={handleValidate}
+                className="py-5 rounded-2xl bg-green-600 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-green-200 active:scale-95 transition-all"
+              >
+                Valider
               </button>
             </div>
           </div>

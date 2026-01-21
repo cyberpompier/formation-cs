@@ -58,6 +58,7 @@ export interface Training {
   durationDays?: number; // New field for duration in days
   hoursPerDay?: number; // New field for hours per day
   isCompleted?: boolean; // New field to mark if training is completed/validated
+  presentUserIds?: string[]; // Liste des utilisateurs ayant réellement participé
 }
 
 export type ToastType = 'success' | 'error' | 'info';

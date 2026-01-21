@@ -10,7 +10,7 @@ interface TrainingListProps {
   allUsers: User[]; 
   onRegister: (trainingId: string) => void;
   onUnregister: (trainingId: string) => void;
-  onValidateTraining: (trainingId: string) => void;
+  onValidateTraining: (trainingId: string, presentUserIds: string[]) => void;
   onEditTraining: (training: Training) => void;
   onDeleteTraining: (trainingId: string) => void;
 }

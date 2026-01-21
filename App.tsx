@@ -143,7 +143,8 @@ const App = () => {
       registeredUserIds: data.registeredUserIds || [],
       prerequisites: data.prerequisites || [],
       image: data.image,
-      isCompleted: false 
+      isCompleted: false,
+      presentUserIds: [] 
     };
     setTrainings(prev => [...prev, newTraining]);
     await dataService.saveTraining(newTraining);
@@ -177,10 +178,14 @@ const App = () => {
     showToast('Profil mis à jour !', 'success');
   };
 
-  const handleValidateTraining = async (trainingId: string) => {
+  const handleValidateTraining = async (trainingId: string, presentUserIds: string[]) => {
     const trainingToUpdate = trainings.find(t => t.id === trainingId);
     if (!trainingToUpdate) return;
-    const updatedTraining = { ...trainingToUpdate, isCompleted: true };
+    const updatedTraining = { 
+      ...trainingToUpdate, 
+      isCompleted: true,
+      presentUserIds: presentUserIds
+    };
     setTrainings(prev => prev.map(t => t.id === trainingId ? updatedTraining : t));
     await dataService.saveTraining(updatedTraining);
     showToast('Formation validée avec succès !', 'success');

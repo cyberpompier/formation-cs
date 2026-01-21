@@ -15,9 +15,18 @@ const Dashboard: React.FC<DashboardProps> = ({ user, trainings }) => {
 
   const fces = calculateFcesStatus(user.fcesDate);
 
-  // Calcul des heures de formation validées (Terminées et validées par un formateur)
+  // Calcul des heures de formation validées
+  // Uniquement si le stage est terminé (isCompleted)
+  // ET si l'utilisateur est dans la liste des présents (presentUserIds)
+  // Fallback: Si presentUserIds n'existe pas (anciens stages), on utilise registeredUserIds
   const trainingHours = trainings
-    .filter(t => t.registeredUserIds.includes(user.id) && t.isCompleted)
+    .filter(t => t.isCompleted)
+    .filter(t => {
+      const listToCheck = t.presentUserIds && t.presentUserIds.length > 0 
+        ? t.presentUserIds 
+        : t.registeredUserIds;
+      return listToCheck.includes(user.id);
+    })
     .reduce((total, t) => {
       const days = t.durationDays || 1;
       const hours = t.hoursPerDay || 7;

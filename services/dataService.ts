@@ -1,5 +1,4 @@
 
-
 import { supabase } from './supabaseClient';
 import { User, Training, Rank, TrainingType } from '../types';
 import { INITIAL_USERS, INITIAL_TRAININGS } from '../constants';
@@ -63,6 +62,7 @@ const mapTrainingFromDB = (row: any): Training => ({
   trainer1: row.trainer1,
   trainer2: row.trainer2,
   isCompleted: row.is_completed,
+  presentUserIds: row.present_user_ids || [],
 });
 
 const mapTrainingToDB = (t: Training) => ({
@@ -82,6 +82,7 @@ const mapTrainingToDB = (t: Training) => ({
   trainer1: t.trainer1,
   trainer2: t.trainer2,
   is_completed: t.isCompleted,
+  present_user_ids: t.presentUserIds,
 });
 
 // --- API Methods ---
