@@ -1,204 +1,147 @@
+
 import React, { useState, useEffect } from 'react';
 import { User, Training } from '../types';
 import { getCareerAdvice } from '../services/geminiService';
+import { calculateFcesStatus } from '../utils/fces';
 
 interface DashboardProps {
   user: User;
   trainings: Training[];
 }
 
-// Global window.aistudio type is now declared in types.ts
-
 const Dashboard: React.FC<DashboardProps> = ({ user, trainings }) => {
   const [advice, setAdvice] = useState<string | null>(null);
   const [loadingAdvice, setLoadingAdvice] = useState(false);
-  const [apiKeySelected, setApiKeySelected] = useState(false);
-  const [showApiKeyPrompt, setShowApiKeyPrompt] = useState(false);
 
-  useEffect(() => {
-    // Check API key status on mount
-    const checkApiKey = async () => {
-      if (window.aistudio) {
-        const hasKey = await window.aistudio.hasSelectedApiKey();
-        setApiKeySelected(hasKey);
-        setShowApiKeyPrompt(!hasKey);
-      } else {
-        // If aistudio is not available, assume API key is handled externally or not needed for this environment
-        // For the purpose of this PWA, we assume aistudio is available if the platform is Google AI Studio
-        setApiKeySelected(true); // Assume key is available if aistudio API is missing, or handle as error
-      }
-    };
-    checkApiKey();
-  }, []);
-
-  // Filter trainings where user is registered and date is in future
-  const myNextTraining = trainings
-    .filter(t => t.registeredUserIds.includes(user.id) && new Date(t.date) > new Date())
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+  const fces = calculateFcesStatus(user.fcesDate);
 
   const handleGetCoachAdvice = async () => {
-    if (!window.aistudio) {
-      // Fallback for environments without window.aistudio, assuming API key is managed differently
-      setLoadingAdvice(true);
-      const result = await getCareerAdvice(user);
-      setAdvice(result);
-      setLoadingAdvice(false);
-      return;
-    }
-
-    if (!apiKeySelected) {
-      setShowApiKeyPrompt(true);
-      return;
-    }
-
     setLoadingAdvice(true);
     try {
       const result = await getCareerAdvice(user);
       setAdvice(result);
-    } catch (error: any) {
-      if (error.message === "API_KEY_ERROR") {
-        setApiKeySelected(false);
-        setShowApiKeyPrompt(true);
-        setAdvice("Veuillez configurer votre clé API pour utiliser le coach.");
-      } else {
-        setAdvice("Erreur lors de la récupération des conseils. Réessayez plus tard.");
-      }
-      console.error("Failed to get career advice:", error);
+    } catch (error) {
+      setAdvice("Le coach est momentanément indisponible.");
     } finally {
       setLoadingAdvice(false);
     }
   };
 
-  const handleOpenSelectKey = async () => {
-    if (window.aistudio) {
-      await window.aistudio.openSelectKey();
-      // Assume success and re-check / retry
-      setApiKeySelected(true);
-      setShowApiKeyPrompt(false);
-      // Immediately try to get advice again, as per guideline for race condition
-      setLoadingAdvice(true);
-      try {
-        const result = await getCareerAdvice(user);
-        setAdvice(result);
-      } catch (error: any) {
-        // If it still fails, it's a real API error or a billing issue
-        if (error.message === "API_KEY_ERROR") {
-          setAdvice("Clé API invalide ou problème de facturation. Veuillez vérifier votre clé.");
-        } else {
-          setAdvice("Erreur inattendue après la sélection de la clé API.");
-        }
-        setApiKeySelected(false); // Indicate failure to user
-        setShowApiKeyPrompt(true);
-        console.error("Failed to get career advice after key selection:", error);
-      } finally {
-        setLoadingAdvice(false);
-      }
-    } else {
-      setAdvice("L'outil de sélection de clé API n'est pas disponible dans cet environnement.");
-    }
+  const statusColors = {
+    VALID: 'bg-green-500 border-green-200 text-green-700',
+    WARNING: 'bg-orange-500 border-orange-200 text-orange-700',
+    EXPIRED: 'bg-red-600 border-red-200 text-red-700'
+  };
+
+  const statusLabels = {
+    VALID: 'APTE',
+    WARNING: 'ÉCHÉANCE PROCHE',
+    EXPIRED: 'HORS RANG'
   };
 
   return (
     <div className="space-y-6">
       {/* FCES Status Card */}
-      <div className={`p-5 rounded-2xl shadow-sm border ${user.fcesValid ? 'bg-white border-green-200' : 'bg-red-50 border-red-200'}`}>
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="font-bold text-lg text-slate-800">État Opérationnel</h2>
-          <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${user.fcesValid ? 'bg-green-100 text-green-700' : 'bg-red-200 text-red-800'}`}>
-            {user.fcesValid ? 'Valide' : 'Alerte'}
-          </span>
-        </div>
-        <p className="text-sm text-slate-600 mb-2">
-          Dernier recyclage: <strong>{new Date(user.fcesDate).toLocaleDateString('fr-FR')}</strong>
-        </p>
-        {!user.fcesValid && (
-          <div className="flex items-start gap-2 text-red-600 text-sm mt-3 bg-red-100 p-3 rounded-lg">
-            <span>⚠️</span>
-            <p>Votre formation de maintien des acquis est expirée. L'accès aux stages de spécialité est <strong>bloqué</strong>.</p>
-          </div>
-        )}
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-          <p className="text-slate-400 text-xs uppercase font-bold">Heures Formation</p>
-          <p className="text-2xl font-bold text-slate-800">42h</p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-          <p className="text-slate-400 text-xs uppercase font-bold">Qualifications</p>
-          <p className="text-2xl font-bold text-slate-800">{user.qualifications.length}</p>
-        </div>
-      </div>
-
-      {/* Next Training */}
-      {myNextTraining ? (
-        <div className="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-fire-red">
-          <p className="text-xs font-bold text-fire-red uppercase mb-1">Prochaine Convocation</p>
-          <h3 className="font-bold text-lg mb-1">{myNextTraining.title}</h3>
-          <div className="text-sm text-slate-600 space-y-1">
-            <p>📅 {new Date(myNextTraining.date).toLocaleDateString('fr-FR')}</p>
-            <p>📍 {myNextTraining.location}</p>
-            <p>🥋 Tenue de feu complète</p>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 text-center py-8">
-          <p className="text-slate-400">Aucune formation planifiée.</p>
-        </div>
-      )}
-
-      {/* AI Coach */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-2xl shadow-lg text-white">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-xl">🤖</div>
+      <div className={`relative overflow-hidden p-6 rounded-[2.5rem] shadow-2xl border-2 bg-white ${
+        fces.status === 'VALID' ? 'border-green-100' : fces.status === 'WARNING' ? 'border-orange-100' : 'border-red-100'
+      }`}>
+        <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="font-bold">Coach Carrière</h3>
-            <p className="text-xs text-slate-300">Propulsé par Gemini</p>
-          </div>
-        </div>
-        
-        {advice && (
-          <div className="bg-white/10 p-4 rounded-xl text-sm leading-relaxed animate-fade-in mb-4">
-            "{advice}"
-          </div>
-        )}
-
-        {showApiKeyPrompt ? (
-          <div className="bg-red-700/50 p-4 rounded-xl text-sm leading-relaxed text-center mb-4">
-            <p className="mb-3">Pour activer le Coach IA, veuillez sélectionner une clé API dans les paramètres du projet.</p>
-            <button 
-              onClick={handleOpenSelectKey}
-              className="w-full bg-red-500 hover:bg-red-400 active:bg-red-600 text-white text-sm font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
-            >
-              Sélectionner clé API
-            </button>
-            <p className="mt-2 text-xs text-slate-300">
-              <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">
-                Information sur la facturation
-              </a>
+            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Aptitude Secourisme (FCES)</h2>
+            <p className={`text-2xl font-black italic uppercase leading-none ${
+              fces.status === 'VALID' ? 'text-green-600' : fces.status === 'WARNING' ? 'text-orange-600' : 'text-red-600'
+            }`}>
+              {statusLabels[fces.status]}
             </p>
           </div>
-        ) : (
-          !advice && (
-            <>
-              <p className="text-sm text-slate-300 mb-4">
-                Besoin d'un conseil pour passer au grade supérieur ou choisir votre prochaine spécialité ?
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-lg ${statusColors[fces.status].split(' ')[0]} text-white`}>
+            {fces.status === 'VALID' ? '✅' : fces.status === 'WARNING' ? '⏳' : '🚫'}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+              <div 
+                className={`h-full transition-all duration-1000 ${
+                  fces.status === 'VALID' ? 'w-full bg-green-500' : fces.status === 'WARNING' ? 'w-2/3 bg-orange-500' : 'w-1/5 bg-red-500'
+                }`}
+              />
+            </div>
+            <span className="text-[10px] font-black text-slate-400">2026</span>
+          </div>
+          
+          <div className="flex justify-between items-center">
+            <p className="text-[10px] font-bold text-slate-500 uppercase">
+              Dernier recyclage : <span className="text-slate-900">{new Date(user.fcesDate).toLocaleDateString('fr-FR')}</span>
+            </p>
+            {fces.daysRemaining && fces.status !== 'EXPIRED' && (
+              <p className="text-[10px] font-black text-slate-400 uppercase italic">
+                {fces.daysRemaining} jours restants
               </p>
-              <button 
-                onClick={handleGetCoachAdvice}
-                disabled={loadingAdvice}
-                className="w-full mt-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-sm font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                {loadingAdvice ? (
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                ) : (
-                  "Analyser mon profil"
-                )}
-              </button>
-            </>
-          )
+            )}
+          </div>
+          
+          <div className={`p-4 rounded-2xl text-[11px] font-bold leading-tight ${
+            fces.status === 'VALID' ? 'bg-green-50 text-green-800' : fces.status === 'WARNING' ? 'bg-orange-50 text-orange-800' : 'bg-red-50 text-red-800'
+          }`}>
+            {fces.message}
+          </div>
+        </div>
+
+        {fces.status !== 'VALID' && (
+          <button className="w-full mt-4 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all">
+            {fces.status === 'WARNING' ? 'Anticiper mon recyclage' : 'S\'inscrire d\'urgence'}
+          </button>
         )}
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 group hover:border-fire-red transition-colors">
+          <p className="text-slate-400 text-[10px] uppercase font-black tracking-widest mb-1">Qualifications</p>
+          <p className="text-3xl font-black text-slate-900 italic">{user.qualifications.length}</p>
+        </div>
+        <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
+          <p className="text-slate-400 text-[10px] uppercase font-black tracking-widest mb-1">Heures Formation</p>
+          <p className="text-3xl font-black text-slate-900 italic">12h</p>
+        </div>
+      </div>
+
+      {/* AI Coach */}
+      <div className="bg-slate-900 p-6 rounded-[2.5rem] shadow-2xl text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-fire-red/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center text-2xl shadow-xl">🤖</div>
+            <div>
+              <h3 className="font-black italic uppercase text-sm tracking-tighter">Coach Opérationnel</h3>
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Conseils personnalisés</p>
+            </div>
+          </div>
+          
+          {advice ? (
+            <div className="bg-white/5 backdrop-blur-md p-5 rounded-2xl text-sm font-bold leading-relaxed mb-4 border border-white/10 italic">
+              "{advice}"
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400 font-bold mb-6 leading-relaxed">
+              Consultez votre analyse de profil pour optimiser votre parcours de formation.
+            </p>
+          )}
+
+          <button 
+            onClick={handleGetCoachAdvice}
+            disabled={loadingAdvice}
+            className="w-full py-4 bg-white text-slate-900 font-black text-[11px] uppercase tracking-widest rounded-2xl shadow-xl hover:bg-slate-100 transition-all flex items-center justify-center gap-3"
+          >
+            {loadingAdvice ? (
+              <div className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin"></div>
+            ) : (
+              "Lancer l'analyse AI"
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
