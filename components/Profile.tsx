@@ -1,15 +1,27 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { User, Rank, ALL_QUALIFICATIONS } from '../types';
 
 interface ProfileProps {
   user: User;
   onUpdateUser: (updatedUser: User) => void;
   onLogout: () => void;
+  initialEditMode?: boolean;
+  onConsumeEditMode?: () => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout }) => {
-  const [isEditing, setIsEditing] = useState(false);
+const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser, onLogout, initialEditMode, onConsumeEditMode }) => {
+  const [isEditing, setIsEditing] = useState(!!initialEditMode);
   const [formData, setFormData] = useState<User>(user);
+
+  useEffect(() => {
+    if (initialEditMode) {
+      setIsEditing(true);
+      if (onConsumeEditMode) {
+        onConsumeEditMode();
+      }
+    }
+  }, [initialEditMode, onConsumeEditMode]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;

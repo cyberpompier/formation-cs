@@ -33,6 +33,7 @@ const App = () => {
   
   const [authChecking, setAuthChecking] = useState(true); // Initial auth check
   const [dataLoading, setDataLoading] = useState(false);
+  const [forceEditProfile, setForceEditProfile] = useState(false); // New state for redirect
   
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
@@ -97,8 +98,11 @@ const App = () => {
   };
 
   // Called from Login Component upon successful sign in/up
-  const handleLoginSuccess = (user: User) => {
+  const handleLoginSuccess = (user: User, isSignUp = false) => {
     setCurrentUser(user);
+    if (isSignUp) {
+      setForceEditProfile(true);
+    }
     loadGlobalData();
   };
 
@@ -228,6 +232,7 @@ const App = () => {
 
   return (
     <HashRouter>
+      {forceEditProfile && <Navigate to="/profile" replace />}
       <Routes>
         <Route path="/" element={<Layout currentUser={currentUser} />}>
           <Route index element={<Dashboard user={currentUser} trainings={trainings} />} />
@@ -254,7 +259,15 @@ const App = () => {
             path="personnel" 
             element={currentUser.isAdmin ? <PersonnelList users={users} onToggleFCES={handleToggleFCES} /> : <Navigate to="/" />} 
           />
-          <Route path="profile" element={<Profile user={currentUser} onUpdateUser={handleUpdateUser} onLogout={handleLogout} />} />
+          <Route path="profile" element={
+            <Profile 
+              user={currentUser} 
+              onUpdateUser={handleUpdateUser} 
+              onLogout={handleLogout} 
+              initialEditMode={forceEditProfile}
+              onConsumeEditMode={() => setForceEditProfile(false)}
+            />
+          } />
         </Route>
       </Routes>
 

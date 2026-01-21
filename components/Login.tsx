@@ -6,7 +6,7 @@ import { supabase } from '../services/supabaseClient';
 import { INITIAL_USERS } from '../constants';
 
 interface LoginProps {
-  onLoginSuccess: (user: User) => void;
+  onLoginSuccess: (user: User, isSignUp?: boolean) => void;
 }
 
 const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
@@ -52,7 +52,8 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           };
           
           await dataService.saveUser(newUser);
-          onLoginSuccess(newUser);
+          // Pass true to indicate this is a new registration
+          onLoginSuccess(newUser, true);
         }
       } else {
         // Login
@@ -60,7 +61,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         if (authUser) {
           const profile = await dataService.fetchUserProfile(authUser.id);
           if (profile) {
-            onLoginSuccess(profile);
+            onLoginSuccess(profile, false);
           } else {
             setError("Profil introuvable pour cet utilisateur.");
           }
@@ -169,6 +170,17 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             {loading ? "Chargement..." : (isSignUp ? "Créer mon compte" : "Se connecter")}
           </button>
         </form>
+
+        {/* Bascule Login/Signup */}
+        <div className="mt-6 text-center">
+            <button 
+                type="button"
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="text-xs font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors"
+            >
+                {isSignUp ? "Déjà un compte ? Se connecter" : "Pas de compte ? S'inscrire"}
+            </button>
+        </div>
         
         {/* Section Comptes de Démo (visible seulement si Supabase n'est pas configuré et qu'on est en login) */}
         {!supabase && !isSignUp && (
@@ -185,34 +197,17 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                             className="w-full p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-100 hover:border-slate-200 text-left flex items-center gap-4 transition-all group active:scale-[0.98]"
                         >
                             <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-lg border border-slate-100 group-hover:scale-110 transition-transform">
-                                {u.isAdmin ? '👮‍♂️' : u.isTrainer ? '🧑‍🏫' : '🧑‍🚒'}
+                                {u.firstName.charAt(0)}
                             </div>
                             <div>
-                                <p className="text-xs font-black text-slate-800 uppercase">{u.rank} {u.lastName}</p>
-                                <p className="text-[10px] text-slate-400 font-bold">
-                                    {u.isAdmin ? 'Administrateur' : u.isTrainer ? 'Formateur' : 'Sapeur'}
-                                </p>
-                            </div>
-                            <div className="ml-auto text-slate-300 group-hover:text-fire-red transition-colors text-xl">
-                                ›
+                                <p className="font-black text-slate-900 text-xs uppercase italic">{u.firstName} {u.lastName}</p>
+                                <p className="text-[10px] font-bold text-slate-400">{u.rank}</p>
                             </div>
                         </button>
                     ))}
                 </div>
             </div>
         )}
-
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError(null); // Clear errors when switching modes
-            }}
-            className="text-slate-400 text-xs font-bold hover:text-slate-600 transition-colors uppercase tracking-wide"
-          >
-            {isSignUp ? "Déjà un compte ? Se connecter" : "Pas de compte ? S'inscrire"}
-          </button>
-        </div>
       </div>
     </div>
   );
