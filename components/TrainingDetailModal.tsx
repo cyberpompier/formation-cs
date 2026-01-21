@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Training, User, Rank } from '../types';
+import { Training, User, Rank, ALL_QUALIFICATIONS, TrainingType } from '../types';
 
 interface TrainingDetailModalProps {
   training: Training;
@@ -70,20 +70,29 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
       case Rank.CCH: return '🎖️';
       case Rank.SGT:
       case Rank.SCH: return '🏅';
-      case Rank.SGT:
-      case Rank.SCH: return '🏅';
       case Rank.ADJ:
       case Rank.ADC: return '🏆';
       default: return '👤';
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'slots' ? parseInt(value) : value
+      [name]: (name === 'slots' || name === 'durationDays') ? parseInt(value) : value
     }));
+  };
+
+  const handleTogglePrerequisite = (qual: string) => {
+    setFormData(prev => {
+      const exists = prev.prerequisites.includes(qual);
+      if (exists) {
+        return { ...prev, prerequisites: prev.prerequisites.filter(q => q !== qual) };
+      } else {
+        return { ...prev, prerequisites: [...prev.prerequisites, qual] };
+      }
+    });
   };
 
   const handleSave = () => {
@@ -134,9 +143,24 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
           
           <div className="absolute bottom-6 left-6 right-6">
-            <span className="bg-fire-red text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-xl mb-3 inline-block">
-              {training.type}
-            </span>
+            {isEditing ? (
+              <div className="mb-3">
+                 <select
+                  name="type"
+                  value={formData.type}
+                  onChange={handleInputChange}
+                  className="bg-fire-red text-white text-[10px] font-black px-4 py-2 rounded-lg uppercase tracking-widest shadow-xl outline-none border-2 border-white/20 cursor-pointer"
+                 >
+                   {Object.values(TrainingType).map(t => (
+                     <option key={t} value={t} className="text-slate-900">{t}</option>
+                   ))}
+                 </select>
+              </div>
+            ) : (
+              <span className="bg-fire-red text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-xl mb-3 inline-block">
+                {training.type}
+              </span>
+            )}
             
             {isEditing ? (
               <input
@@ -170,6 +194,7 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
           
           {/* Dashboard d'informations */}
           <div className="grid grid-cols-2 gap-3">
+            {/* Date */}
             <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100">
               <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Date</p>
               {isEditing ? (
@@ -184,6 +209,8 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
                 <p className="font-black text-slate-900 text-base uppercase italic">{new Date(formData.date).toLocaleDateString('fr-FR')}</p>
               )}
             </div>
+
+            {/* Places */}
             <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100">
               <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Places Totales</p>
               {isEditing ? (
@@ -200,6 +227,40 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
                 </p>
               )}
             </div>
+
+            {/* Heure et Durée */}
+            <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100">
+              <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Heure Début</p>
+              {isEditing ? (
+                 <input
+                  type="time"
+                  name="startTime"
+                  value={formData.startTime || ''}
+                  onChange={handleInputChange}
+                  className="w-full bg-white p-2 rounded-lg font-bold text-slate-900 text-sm outline-none border focus:border-fire-red"
+                 />
+              ) : (
+                <p className="font-black text-slate-900 text-base uppercase italic">{formData.startTime || '08:00'}</p>
+              )}
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100">
+              <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Durée (Jours)</p>
+              {isEditing ? (
+                 <input
+                  type="number"
+                  name="durationDays"
+                  min="1"
+                  value={formData.durationDays || 1}
+                  onChange={handleInputChange}
+                  className="w-full bg-white p-2 rounded-lg font-bold text-slate-900 text-sm outline-none border focus:border-fire-red"
+                 />
+              ) : (
+                <p className="font-black text-slate-900 text-base uppercase italic">{formData.durationDays || 1} jour(s)</p>
+              )}
+            </div>
+
+            {/* Lieu */}
             <div className="col-span-2 bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100 flex justify-between items-center">
               <div className="w-full mr-4">
                 <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Lieu de rendez-vous</p>
@@ -222,6 +283,61 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
               )}
             </div>
           </div>
+
+          {/* Formateurs (Visible en tout temps, éditable en mode édition) */}
+          <section>
+            <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em] mb-3 border-l-4 border-fire-red pl-3">Encadrement</h3>
+            <div className="grid grid-cols-2 gap-3">
+               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                 <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">Formateur 1</p>
+                 {isEditing ? (
+                   <input type="text" name="trainer1" value={formData.trainer1 || ''} onChange={handleInputChange} className="w-full text-xs font-bold bg-white p-1 rounded border" placeholder="Nom du formateur" />
+                 ) : (
+                   <p className="text-xs font-bold text-slate-900">{formData.trainer1 || 'Non défini'}</p>
+                 )}
+               </div>
+               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                 <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">Formateur 2</p>
+                 {isEditing ? (
+                   <input type="text" name="trainer2" value={formData.trainer2 || ''} onChange={handleInputChange} className="w-full text-xs font-bold bg-white p-1 rounded border" placeholder="Optionnel" />
+                 ) : (
+                   <p className="text-xs font-bold text-slate-900">{formData.trainer2 || '-'}</p>
+                 )}
+               </div>
+            </div>
+          </section>
+
+          {/* Pré-requis (Editable) */}
+          {(isEditing || formData.prerequisites.length > 0) && (
+            <section>
+              <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em] mb-3 border-l-4 border-fire-red pl-3">Pré-requis</h3>
+              {isEditing ? (
+                <div className="flex flex-wrap gap-2 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                  {ALL_QUALIFICATIONS.map(qual => (
+                    <button
+                      key={qual}
+                      onClick={() => handleTogglePrerequisite(qual)}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all ${
+                        formData.prerequisites.includes(qual)
+                          ? 'bg-fire-red text-white shadow-md'
+                          : 'bg-white text-slate-400 border border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      {qual}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                 <div className="flex flex-wrap gap-2">
+                    {formData.prerequisites.map(p => (
+                      <span key={p} className="bg-slate-900 text-white text-[10px] font-black px-3 py-1.5 rounded-xl shadow-md uppercase">
+                        {p}
+                      </span>
+                    ))}
+                 </div>
+              )}
+            </section>
+          )}
 
           {/* Description pédagogique */}
           <section>
