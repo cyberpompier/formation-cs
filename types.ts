@@ -1,3 +1,4 @@
+
 export enum Rank {
   SAP = 'Sapeur',
   S1C = 'Sapeur 1ère Classe',
@@ -55,6 +56,7 @@ export interface Training {
   trainer2?: string; // New field for trainer 2
   startTime?: string; // New field for start time
   durationDays?: number; // New field for duration in days
+  hoursPerDay?: number; // New field for hours per day
   isCompleted?: boolean; // New field to mark if training is completed/validated
 }
 

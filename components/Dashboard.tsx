@@ -15,6 +15,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user, trainings }) => {
 
   const fces = calculateFcesStatus(user.fcesDate);
 
+  // Calcul des heures de formation validées (Terminées et validées par un formateur)
+  const trainingHours = trainings
+    .filter(t => t.registeredUserIds.includes(user.id) && t.isCompleted)
+    .reduce((total, t) => {
+      const days = t.durationDays || 1;
+      const hours = t.hoursPerDay || 7;
+      return total + (days * hours);
+    }, 0);
+
   // Calcul du prochain stage
   const nextTraining = trainings
     .filter(t => t.registeredUserIds.includes(user.id)) // Stages où l'user est inscrit
@@ -110,7 +119,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, trainings }) => {
         </div>
         <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
           <p className="text-slate-400 text-[10px] uppercase font-black tracking-widest mb-1">Heures Formation</p>
-          <p className="text-3xl font-black text-slate-900 italic">12h</p>
+          <p className="text-3xl font-black text-slate-900 italic">{trainingHours}h</p>
         </div>
       </div>
 

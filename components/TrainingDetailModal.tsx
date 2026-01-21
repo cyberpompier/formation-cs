@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { Training, User, Rank, ALL_QUALIFICATIONS, TrainingType } from '../types';
 import { isFcesValidForTraining } from '../utils/fces';
@@ -85,7 +86,7 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: (name === 'slots' || name === 'durationDays') ? parseInt(value) : value
+      [name]: (name === 'slots' || name === 'durationDays' || name === 'hoursPerDay') ? parseInt(value) : value
     }));
   };
 
@@ -265,10 +266,27 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
               )}
             </div>
 
+             <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100">
+              <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Heures / Jour</p>
+              {isEditing ? (
+                 <input
+                  type="number"
+                  name="hoursPerDay"
+                  min="1"
+                  max="24"
+                  value={formData.hoursPerDay || 7}
+                  onChange={handleInputChange}
+                  className="w-full bg-white p-2 rounded-lg font-bold text-slate-900 text-sm outline-none border focus:border-fire-red"
+                 />
+              ) : (
+                <p className="font-black text-slate-900 text-base uppercase italic">{formData.hoursPerDay || 7}h</p>
+              )}
+            </div>
+
             {/* Lieu */}
-            <div className="col-span-2 bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100 flex justify-between items-center">
+            <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100 flex justify-between items-center">
               <div className="w-full mr-4">
-                <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Lieu de rendez-vous</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Lieu</p>
                 {isEditing ? (
                    <input
                     type="text"

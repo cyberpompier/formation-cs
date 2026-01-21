@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ALL_QUALIFICATIONS, TrainingType } from '../types';
 import { generateTrainingDescription } from '../services/geminiService';
@@ -10,15 +11,16 @@ const CreateTraining: React.FC<CreateTrainingProps> = ({ onCreate }) => {
   const [title, setTitle] = useState('');
   const [type, setType] = useState<TrainingType>(TrainingType.INC);
   const [date, setDate] = useState('');
-  const [startTime, setStartTime] = useState(''); // New state for start time
-  const [durationDays, setDurationDays] = useState(1); // New state for duration
+  const [startTime, setStartTime] = useState(''); 
+  const [durationDays, setDurationDays] = useState(1);
+  const [hoursPerDay, setHoursPerDay] = useState(7); // New state for hours per day
   const [slots, setSlots] = useState(6);
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
-  const [image, setImage] = useState(''); // New state for image URL
-  const [trainer1, setTrainer1] = useState(''); // New state for trainer 1
-  const [trainer2, setTrainer2] = useState(''); // New state for trainer 2
-  const [selectedPrerequisites, setSelectedPrerequisites] = useState<string[]>([]); // New state for prerequisites
+  const [image, setImage] = useState(''); 
+  const [trainer1, setTrainer1] = useState(''); 
+  const [trainer2, setTrainer2] = useState(''); 
+  const [selectedPrerequisites, setSelectedPrerequisites] = useState<string[]>([]); 
 
   const [generating, setGenerating] = useState(false);
   const [apiKeySelected, setApiKeySelected] = useState(false);
@@ -122,15 +124,16 @@ const CreateTraining: React.FC<CreateTrainingProps> = ({ onCreate }) => {
       title,
       type,
       date,
-      startTime, // Add start time
-      durationDays, // Add duration in days
+      startTime, 
+      durationDays, 
+      hoursPerDay, // Include hours per day
       slots,
       location,
       description,
-      image: image || `https://picsum.photos/400/200?random=${Date.now()}`, // Use provided image or generate random
-      trainer1, // Add trainer 1
-      trainer2, // Add trainer 2
-      prerequisites: selectedPrerequisites // Add selected prerequisites
+      image: image || `https://picsum.photos/400/200?random=${Date.now()}`, 
+      trainer1, 
+      trainer2, 
+      prerequisites: selectedPrerequisites 
     });
     // Reset form fields
     setTitle('');
@@ -138,6 +141,7 @@ const CreateTraining: React.FC<CreateTrainingProps> = ({ onCreate }) => {
     setDate('');
     setStartTime('');
     setDurationDays(1);
+    setHoursPerDay(7);
     setSlots(6);
     setLocation('');
     setDescription('');
@@ -215,16 +219,30 @@ const CreateTraining: React.FC<CreateTrainingProps> = ({ onCreate }) => {
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Durée (Jours)</label>
-          <input 
-            type="number" 
-            required
-            min="1"
-            value={durationDays}
-            onChange={e => setDurationDays(parseInt(e.target.value))}
-            className={inputStyle}
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Durée (Jours)</label>
+            <input 
+              type="number" 
+              required
+              min="1"
+              value={durationDays}
+              onChange={e => setDurationDays(parseInt(e.target.value))}
+              className={inputStyle}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Heures / Jour</label>
+            <input 
+              type="number" 
+              required
+              min="1"
+              max="24"
+              value={hoursPerDay}
+              onChange={e => setHoursPerDay(parseInt(e.target.value))}
+              className={inputStyle}
+            />
+          </div>
         </div>
 
         <div>

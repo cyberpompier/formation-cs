@@ -1,4 +1,5 @@
 
+
 import { Rank, Training, TrainingType, User } from './types';
 
 export const MOCK_CURRENT_USER_ID = 'u2'; 
@@ -62,6 +63,7 @@ export const INITIAL_TRAININGS: Training[] = [
     date: '2026-06-15',
     startTime: '08:00',
     durationDays: 1,
+    hoursPerDay: 7,
     location: 'Centre de Formation Dpt',
     description: 'Recyclage obligatoire des acquis en secourisme. Ateliers pratiques et mises en situation pour maintenir vos compétences à jour.',
     slots: 12,
@@ -78,6 +80,7 @@ export const INITIAL_TRAININGS: Training[] = [
     date: '2026-07-02',
     startTime: '09:00',
     durationDays: 3,
+    hoursPerDay: 6,
     location: 'Caisson à feu - Zone Nord',
     description: 'Stage intensif sur les techniques de lance et lecture du feu en milieu clos. Développez votre maîtrise opérationnelle.',
     slots: 6,
@@ -93,6 +96,7 @@ export const INITIAL_TRAININGS: Training[] = [
     date: '2026-08-10',
     startTime: '07:30',
     durationDays: 2,
+    hoursPerDay: 8,
     location: 'Piste Forestière',
     description: 'Formation à la conduite des VLHR et CCF en terrain accidenté. Maîtrisez les véhicules d\'intervention hors-route.',
     slots: 4,

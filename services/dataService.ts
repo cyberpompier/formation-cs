@@ -1,3 +1,5 @@
+
+
 import { supabase } from './supabaseClient';
 import { User, Training, Rank, TrainingType } from '../types';
 import { INITIAL_USERS, INITIAL_TRAININGS } from '../constants';
@@ -51,6 +53,7 @@ const mapTrainingFromDB = (row: any): Training => ({
   date: row.date,
   startTime: row.start_time,
   durationDays: row.duration_days,
+  hoursPerDay: row.hours_per_day,
   location: row.location,
   description: row.description,
   slots: row.slots,
@@ -69,6 +72,7 @@ const mapTrainingToDB = (t: Training) => ({
   date: t.date,
   start_time: t.startTime,
   duration_days: t.durationDays,
+  hours_per_day: t.hoursPerDay,
   location: t.location,
   description: t.description,
   slots: t.slots,
