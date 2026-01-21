@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Training, TrainingType, User } from '../types';
 import TrainingDetailModal from './TrainingDetailModal';
@@ -56,12 +57,20 @@ const TrainingList: React.FC<TrainingListProps> = ({ trainings, user, allUsers, 
           const isRegistered = training.registeredUserIds.includes(user.id);
           const isFull = training.registeredUserIds.length >= training.slots;
           
+          // Calcul des pré-requis manquants
+          const missingPrereqs = training.prerequisites.filter(p => !user.qualifications.includes(p));
+          const hasPrereqs = missingPrereqs.length === 0;
+
           let canRegister = true;
           let statusLabel = isRegistered ? "INSCRIT" : "DISPONIBLE";
 
+          // Priorité des blocages
           if (!user.fcesValid && training.type !== TrainingType.SUAP) {
             canRegister = false;
             statusLabel = "BLOQUÉ (FCES)";
+          } else if (!hasPrereqs && !isRegistered) {
+            canRegister = false;
+            statusLabel = "PRÉ-REQUIS MANQUANTS";
           } else if (isFull && !isRegistered) {
             canRegister = false;
             statusLabel = "COMPLET";
@@ -108,9 +117,10 @@ const TrainingList: React.FC<TrainingListProps> = ({ trainings, user, allUsers, 
                   {training.title}
                 </h3>
                 
-                <div className="flex items-center gap-6 text-[10px] font-black text-slate-400 mb-6 uppercase tracking-tight">
-                  <span className="flex items-center gap-1">📅 {new Date(training.date).toLocaleDateString('fr-FR')}</span>
-                  <span className="flex items-center gap-1">👥 {training.registeredUserIds.length}/{training.slots} AGENTS</span>
+                <div className="flex items-center gap-4 text-[10px] font-black text-slate-400 mb-6 uppercase tracking-tight overflow-hidden">
+                  <span className="flex items-center gap-1 shrink-0">📅 {new Date(training.date).toLocaleDateString('fr-FR')}</span>
+                  <span className="flex items-center gap-1 shrink-0">👥 {training.registeredUserIds.length}/{training.slots} AGENTS</span>
+                  <span className="flex items-center gap-1 truncate">📍 {training.location}</span>
                 </div>
                 
                 <div className="mt-auto">

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Training, User, Rank } from '../types';
 
@@ -173,6 +174,22 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
               </button>
             ) : (
               <div className="space-y-3">
+                {/* Affichage des pré-requis manquants */}
+                {!isRegistered && missingPreqs.length > 0 && (
+                  <div className="bg-red-50 p-5 rounded-[2rem] border border-red-100 mb-2">
+                    <p className="text-[10px] font-black text-red-600 uppercase mb-3 tracking-widest flex items-center gap-2">
+                      <span className="animate-pulse">⚠️</span> Diplômes manquants à votre profil :
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {missingPreqs.map(p => (
+                        <span key={p} className="bg-fire-red text-white text-[10px] font-black px-3 py-1.5 rounded-xl shadow-md uppercase">
+                          {p}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <button
                   onClick={() => { onRegister(training.id); }}
                   disabled={!canRegister}
@@ -186,7 +203,7 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
                 </button>
                 {!canRegister && (
                   <p className="text-center text-[10px] font-black text-red-500 uppercase tracking-widest bg-red-50 py-3 rounded-2xl border border-red-100">
-                    ⚠️ {blockReason}
+                    Motif : {blockReason}
                   </p>
                 )}
               </div>
