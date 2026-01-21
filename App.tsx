@@ -36,10 +36,12 @@ const App = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Actions
+  // Actions avec mise à jour fonctionnelle pour garantir la réactivité immédiate
   const handleRegister = (trainingId: string) => {
     setTrainings(prev => prev.map(t => {
       if (t.id === trainingId) {
+        // Empêche les inscriptions en double si l'utilisateur clique trop vite
+        if (t.registeredUserIds.includes(currentUser.id)) return t;
         return { ...t, registeredUserIds: [...t.registeredUserIds, currentUser.id] };
       }
       return t;
@@ -48,7 +50,6 @@ const App = () => {
   };
 
   const handleUnregister = (trainingId: string) => {
-    // Rule: Cannot unregister less than 48h before (Simplified check here, assume valid for demo)
     setTrainings(prev => prev.map(t => {
       if (t.id === trainingId) {
         return { ...t, registeredUserIds: t.registeredUserIds.filter(id => id !== currentUser.id) };
@@ -62,12 +63,10 @@ const App = () => {
     const newTraining: Training = {
       ...data as Training,
       id: `t${Date.now()}`,
-      // Ensure default values for arrays if not provided by form
       registeredUserIds: data.registeredUserIds || [],
       prerequisites: data.prerequisites || [],
-      // Ensure image is set, if not provided by form, a default will be used in CreateTraining
       image: data.image,
-      isCompleted: false // New trainings are not completed by default
+      isCompleted: false 
     };
     setTrainings(prev => [...prev, newTraining]);
     showToast('Formation publiée avec succès', 'success');
@@ -88,10 +87,7 @@ const App = () => {
   };
 
   const handleLogout = () => {
-    // In a real app, this would clear authentication tokens and redirect to a login page.
-    // For this mock app, we'll just show a toast.
     showToast('Déconnexion réussie.', 'info');
-    // Optionally: set MOCK_CURRENT_USER_ID to null or redirect
   };
 
   const handleValidateTraining = (trainingId: string) => {
@@ -118,7 +114,7 @@ const App = () => {
                 allUsers={users} 
                 onRegister={handleRegister} 
                 onUnregister={handleUnregister}
-                onValidateTraining={handleValidateTraining} // Pass new prop
+                onValidateTraining={handleValidateTraining}
               />
             } 
           />
@@ -136,8 +132,8 @@ const App = () => {
 
       {/* Global Toast */}
       {toast && (
-        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-[60] px-6 py-3 rounded-full shadow-xl font-semibold text-white animate-bounce-in ${
-          toast.type === 'success' ? 'bg-green-600' : toast.type === 'error' ? 'bg-red-600' : 'bg-slate-800'
+        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] px-6 py-3 rounded-full shadow-2xl font-black text-xs uppercase tracking-widest text-white animate-in slide-in-from-top-4 duration-300 ${
+          toast.type === 'success' ? 'bg-green-600' : toast.type === 'error' ? 'bg-fire-red' : 'bg-slate-900'
         }`}>
           {toast.message}
         </div>
