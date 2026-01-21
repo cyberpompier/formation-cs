@@ -1,7 +1,13 @@
+
 import React from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { User } from '../types';
 
-const Layout: React.FC = () => {
+interface LayoutProps {
+  currentUser: User | null;
+}
+
+const Layout: React.FC<LayoutProps> = ({ currentUser }) => {
   const location = useLocation();
 
   const getPageTitle = () => {
@@ -33,8 +39,17 @@ const Layout: React.FC = () => {
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around items-center h-16 z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-[env(safe-area-inset-bottom)]">
         <NavItem to="/" icon="📊" label="Dash" />
         <NavItem to="/trainings" icon="🚒" label="Stages" />
-        <NavItem to="/create" icon="➕" label="Créer" />
-        <NavItem to="/personnel" icon="👥" label="Staff" />
+        
+        {/* Onglet CRÉER : Visible pour Formateurs OU Admins */}
+        {(currentUser?.isTrainer || currentUser?.isAdmin) && (
+          <NavItem to="/create" icon="➕" label="Créer" />
+        )}
+        
+        {/* Onglet STAFF : Visible uniquement pour Admins */}
+        {currentUser?.isAdmin && (
+          <NavItem to="/personnel" icon="👥" label="Staff" />
+        )}
+        
         <NavItem to="/profile" icon="👤" label="Profil" />
       </nav>
     </div>

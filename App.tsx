@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
@@ -223,7 +224,7 @@ const App = () => {
   return (
     <HashRouter>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        <Route path="/" element={<Layout currentUser={currentUser} />}>
           <Route index element={<Dashboard user={currentUser} trainings={trainings} />} />
           <Route 
             path="trainings" 
@@ -242,7 +243,7 @@ const App = () => {
           />
           <Route 
             path="create" 
-            element={currentUser.isTrainer ? <CreateTraining onCreate={handleCreateTraining} /> : <Navigate to="/" />} 
+            element={(currentUser.isTrainer || currentUser.isAdmin) ? <CreateTraining onCreate={handleCreateTraining} /> : <Navigate to="/" />} 
           />
           <Route 
             path="personnel" 
