@@ -26,6 +26,7 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
   onDeleteTraining,
   onClose,
 }) => {
+  const [showConfirmRegister, setShowConfirmRegister] = useState(false);
   const [showConfirmUnregister, setShowConfirmUnregister] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -450,7 +451,7 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
                 )}
 
                 <button
-                  onClick={() => { onRegister(training.id); }}
+                  onClick={() => setShowConfirmRegister(true)}
                   disabled={!canRegister}
                   className={`w-full py-6 rounded-[1.5rem] font-black text-[12px] uppercase tracking-widest shadow-2xl transition-all active:scale-95 ${
                     canRegister 
@@ -470,6 +471,28 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Confirmation Inscription (Overlay supérieur) */}
+      {showConfirmRegister && (
+        <div className="fixed inset-0 bg-slate-900/95 z-[100] flex items-center justify-center p-8 animate-in zoom-in duration-200">
+          <div className="bg-white rounded-[3rem] p-10 w-full max-w-sm text-center shadow-2xl border border-slate-100">
+            <div className="text-6xl mb-8">📝</div>
+            <h4 className="text-2xl font-black text-slate-900 mb-4 uppercase italic leading-none">Confirmer ?</h4>
+            <p className="text-sm text-slate-500 font-bold mb-10 leading-relaxed uppercase tracking-widest">
+              Validez-vous votre inscription à ce stage ? Votre présence sera requise.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <button onClick={() => setShowConfirmRegister(false)} className="py-5 rounded-2xl bg-slate-100 text-slate-600 font-black text-xs uppercase tracking-widest active:scale-95 transition-all">Retour</button>
+              <button 
+                onClick={() => { onRegister(training.id); setShowConfirmRegister(false); }} 
+                className="py-5 rounded-2xl bg-fire-red text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-red-200 active:scale-95 transition-all"
+              >
+                M'inscrire
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Confirmation Désistement (Overlay supérieur) */}
       {showConfirmUnregister && (

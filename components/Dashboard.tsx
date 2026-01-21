@@ -15,6 +15,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user, trainings }) => {
 
   const fces = calculateFcesStatus(user.fcesDate);
 
+  // Calcul du prochain stage
+  const nextTraining = trainings
+    .filter(t => t.registeredUserIds.includes(user.id)) // Stages où l'user est inscrit
+    .filter(t => new Date(t.date) >= new Date()) // Stages futurs (ou aujourd'hui)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0]; // Le plus proche
+
   const handleGetCoachAdvice = async () => {
     setLoadingAdvice(true);
     try {
@@ -107,6 +113,27 @@ const Dashboard: React.FC<DashboardProps> = ({ user, trainings }) => {
           <p className="text-3xl font-black text-slate-900 italic">12h</p>
         </div>
       </div>
+
+      {/* PROCHAIN STAGE (Minimalist Version) */}
+      {nextTraining && (
+        <div className="bg-white rounded-[2.5rem] border-2 border-slate-900 p-6 flex items-center justify-between shadow-lg cursor-default transition-transform">
+           <div className="flex-1 pr-4">
+              <div className="flex items-center gap-2 mb-2">
+                 <div className="w-2 h-2 rounded-full bg-fire-red animate-pulse"></div>
+                 <p className="text-fire-red text-[10px] font-black uppercase tracking-[0.2em]">Prochaine convocation</p>
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 italic uppercase leading-none">
+                 {nextTraining.title}
+              </h3>
+              <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">
+                 {new Date(nextTraining.date).toLocaleDateString('fr-FR')} • {nextTraining.location}
+              </p>
+           </div>
+           <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-xl shrink-0">
+              🗓️
+           </div>
+        </div>
+      )}
 
       {/* AI Coach */}
       <div className="bg-slate-900 p-6 rounded-[2.5rem] shadow-2xl text-white relative overflow-hidden">
