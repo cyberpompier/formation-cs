@@ -1,0 +1,6 @@
+/* Netlify SPA Rewrite Rule */
+/* Ensure all routes are handled by React-Router (index.html) */
+/* This will now be correctly packaged into your production build */
+
+/* Any path (/*) | Serves (/index.html) | Status (200) */
+/* /* /index.html 200
