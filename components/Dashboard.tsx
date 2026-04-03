@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { User, Training } from '../types';
 import { getCareerAdvice } from '../services/geminiService';
 import { calculateFcesStatus } from '../utils/fces';
@@ -15,10 +15,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, trainings }) => {
 
   const fces = calculateFcesStatus(user.fcesDate);
 
-  // Calcul des heures de formation validées
-  // Uniquement si le stage est terminé (isCompleted)
-  // ET si l'utilisateur est dans la liste des présents (presentUserIds)
-  // Fallback: Si presentUserIds n'existe pas (anciens stages), on utilise registeredUserIds
   const trainingHours = trainings
     .filter(t => t.isCompleted)
     .filter(t => {
@@ -33,11 +29,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, trainings }) => {
       return total + (days * hours);
     }, 0);
 
-  // Calcul du prochain stage
   const nextTraining = trainings
-    .filter(t => t.registeredUserIds.includes(user.id)) // Stages où l'user est inscrit
-    .filter(t => new Date(t.date) >= new Date()) // Stages futurs (ou aujourd'hui)
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0]; // Le plus proche
+    .filter(t => t.registeredUserIds.includes(user.id))
+    .filter(t => new Date(t.date) >= new Date())
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
 
   const handleGetCoachAdvice = async () => {
     setLoadingAdvice(true);
@@ -52,138 +47,152 @@ const Dashboard: React.FC<DashboardProps> = ({ user, trainings }) => {
   };
 
   const statusColors = {
-    VALID: 'bg-green-500 border-green-200 text-green-700',
-    WARNING: 'bg-orange-500 border-orange-200 text-orange-700',
-    EXPIRED: 'bg-red-600 border-red-200 text-red-700'
+    VALID: 'bg-emerald-500 border-emerald-100 text-emerald-600',
+    WARNING: 'bg-amber-500 border-amber-100 text-amber-600',
+    EXPIRED: 'bg-fire-red border-red-100 text-fire-red'
   };
 
   const statusLabels = {
-    VALID: 'APTE',
+    VALID: 'APTE OPÉRATIONNEL',
     WARNING: 'ÉCHÉANCE PROCHE',
-    EXPIRED: 'HORS RANG'
+    EXPIRED: 'HORS RANG (FCES)'
   };
 
   return (
-    <div className="space-y-6">
-      {/* FCES Status Card */}
-      <div className={`relative overflow-hidden p-6 rounded-[2.5rem] shadow-2xl border-2 bg-white ${
-        fces.status === 'VALID' ? 'border-green-100' : fces.status === 'WARNING' ? 'border-orange-100' : 'border-red-100'
+    <div className="space-y-8 animate-in fade-in duration-700">
+      {/* FCES Status Card Premium */}
+      <div className={`relative overflow-hidden p-8 rounded-[3rem] shadow-2xl border-4 bg-white transition-all duration-500 ${
+        fces.status === 'VALID' ? 'border-emerald-50' : fces.status === 'WARNING' ? 'border-amber-50' : 'border-red-50'
       }`}>
-        <div className="flex justify-between items-start mb-4">
+        <div className="absolute top-0 right-0 w-64 h-64 opacity-10 -mr-20 -mt-20 blur-3xl rounded-full bg-slate-900"></div>
+        
+        <div className="relative flex justify-between items-start mb-8">
           <div>
-            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Aptitude Secourisme (FCES)</h2>
-            <p className={`text-2xl font-black italic uppercase leading-none ${
-              fces.status === 'VALID' ? 'text-green-600' : fces.status === 'WARNING' ? 'text-orange-600' : 'text-red-600'
+            <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Statut Aptitude</h2>
+            <p className={`text-3xl font-black italic uppercase leading-none tracking-tighter ${
+              fces.status === 'VALID' ? 'text-emerald-600' : fces.status === 'WARNING' ? 'text-amber-600' : 'text-fire-red'
             }`}>
               {statusLabels[fces.status]}
+              <span className="text-slate-900 ml-1">.</span>
             </p>
           </div>
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-lg ${statusColors[fces.status].split(' ')[0]} text-white`}>
-            {fces.status === 'VALID' ? '✅' : fces.status === 'WARNING' ? '⏳' : '🚫'}
+          <div className={`w-14 h-14 rounded-3xl flex items-center justify-center text-3xl shadow-xl ${statusColors[fces.status].split(' ')[0]} text-white transform hover:rotate-12 transition-transform`}>
+            {fces.status === 'VALID' ? '🔥' : fces.status === 'WARNING' ? '⚠️' : '🚨'}
           </div>
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+        <div className="relative space-y-6">
+          <div className="space-y-2">
+            <div className="flex justify-between items-end mb-1 px-1">
+               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Progression annuelle</span>
+               <span className="text-[9px] font-black text-slate-900 uppercase italic">Validité {new Date(user.fcesDate).getFullYear() + 1}</span>
+            </div>
+            <div className="h-4 bg-slate-50 rounded-full overflow-hidden shadow-inner p-1">
               <div 
-                className={`h-full transition-all duration-1000 ${
-                  fces.status === 'VALID' ? 'w-full bg-green-500' : fces.status === 'WARNING' ? 'w-2/3 bg-orange-500' : 'w-1/5 bg-red-500'
+                className={`h-full rounded-full transition-all duration-1000 ease-out shadow-lg ${
+                  fces.status === 'VALID' ? 'w-[100%] bg-emerald-500' : fces.status === 'WARNING' ? 'w-[30%] bg-amber-500' : 'w-[5%] bg-fire-red'
                 }`}
               />
             </div>
-            <span className="text-[10px] font-black text-slate-400">2026</span>
           </div>
           
-          <div className="flex justify-between items-center">
-            <p className="text-[10px] font-bold text-slate-500 uppercase">
-              Dernier recyclage : <span className="text-slate-900">{new Date(user.fcesDate).toLocaleDateString('fr-FR')}</span>
-            </p>
-            {fces.daysRemaining && fces.status !== 'EXPIRED' && (
-              <p className="text-[10px] font-black text-slate-400 uppercase italic">
-                {fces.daysRemaining} jours restants
-              </p>
-            )}
-          </div>
-          
-          <div className={`p-4 rounded-2xl text-[11px] font-bold leading-tight ${
-            fces.status === 'VALID' ? 'bg-green-50 text-green-800' : fces.status === 'WARNING' ? 'bg-orange-50 text-orange-800' : 'bg-red-50 text-red-800'
+          <div className={`p-5 rounded-[2rem] text-sm font-bold leading-relaxed border transition-all ${
+            fces.status === 'VALID' ? 'bg-emerald-50/30 border-emerald-100 text-emerald-800' : fces.status === 'WARNING' ? 'bg-amber-50/30 border-amber-100 text-amber-800' : 'bg-red-50/30 border-red-100 text-red-800 font-black italic'
           }`}>
             {fces.message}
           </div>
         </div>
 
         {fces.status !== 'VALID' && (
-          <button className="w-full mt-4 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all">
-            {fces.status === 'WARNING' ? 'Anticiper mon recyclage' : 'S\'inscrire d\'urgence'}
+          <button className="w-full mt-6 py-5 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-black active:scale-95 transition-all">
+            {fces.status === 'WARNING' ? 'Prendre un créneau de recyclage' : 'Réactivation immédiate requise'}
           </button>
         )}
       </div>
 
-      {/* Quick Stats */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 group hover:border-fire-red transition-colors">
-          <p className="text-slate-400 text-[10px] uppercase font-black tracking-widest mb-1">Qualifications</p>
-          <p className="text-3xl font-black text-slate-900 italic">{user.qualifications.length}</p>
+        <div className="bg-white p-7 rounded-[2.5rem] shadow-lg border-2 border-slate-50 flex flex-col justify-center items-center text-center group hover:border-fire-red/20 transition-all">
+          <p className="text-slate-400 text-[9px] uppercase font-black tracking-[0.3em] mb-2">Spécialités</p>
+          <div className="relative">
+             <p className="text-5xl font-black text-slate-900 italic tracking-tighter transition-transform group-hover:scale-110">{user.qualifications.length}</p>
+             <div className="absolute -bottom-2 left-0 right-0 h-1 bg-fire-red/20 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+          </div>
         </div>
-        <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
-          <p className="text-slate-400 text-[10px] uppercase font-black tracking-widest mb-1">Heures Formation</p>
-          <p className="text-3xl font-black text-slate-900 italic">{trainingHours}h</p>
+        
+        <div className="bg-white p-7 rounded-[2.5rem] shadow-lg border-2 border-slate-50 flex flex-col justify-center items-center text-center group hover:border-emerald-500/20 transition-all">
+          <p className="text-slate-400 text-[9px] uppercase font-black tracking-[0.3em] mb-2">Heures totales</p>
+          <div className="relative">
+            <p className="text-5xl font-black text-slate-900 italic tracking-tighter transition-transform group-hover:scale-110">{trainingHours}<span className="text-xl">h</span></p>
+             <div className="absolute -bottom-2 left-0 right-0 h-1 bg-emerald-500/20 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+          </div>
         </div>
       </div>
 
-      {/* PROCHAIN STAGE (Minimalist Version) */}
+      {/* Convocation Card Premium */}
       {nextTraining && (
-        <div className="bg-white rounded-[2.5rem] border-2 border-slate-900 p-6 flex items-center justify-between shadow-lg cursor-default transition-transform">
-           <div className="flex-1 pr-4">
-              <div className="flex items-center gap-2 mb-2">
+        <div className="bg-white rounded-[3rem] border-[3px] border-slate-900 p-8 flex items-center justify-between shadow-2xl relative overflow-hidden group">
+           <div className="absolute top-0 right-0 w-32 h-32 bg-slate-900/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150"></div>
+           <div className="flex-1 pr-6 relative z-10">
+              <div className="flex items-center gap-2 mb-4">
                  <div className="w-2 h-2 rounded-full bg-fire-red animate-pulse"></div>
-                 <p className="text-fire-red text-[10px] font-black uppercase tracking-[0.2em]">Prochaine convocation</p>
+                 <p className="text-fire-red text-[10px] font-black uppercase tracking-[0.3em]">Ordre de convocation</p>
               </div>
-              <h3 className="text-2xl font-black text-slate-900 italic uppercase leading-none">
+              <h3 className="text-3xl font-black text-slate-900 italic uppercase leading-[0.9] tracking-tighter">
                  {nextTraining.title}
               </h3>
-              <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">
-                 {new Date(nextTraining.date).toLocaleDateString('fr-FR')} • {nextTraining.location}
-              </p>
+              <div className="flex flex-col gap-1 mt-4">
+                <p className="text-[11px] font-black text-slate-900 uppercase">
+                  🗓️ {new Date(nextTraining.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </p>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+                  📍 {nextTraining.location}
+                </p>
+              </div>
            </div>
-           <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-xl shrink-0">
-              🗓️
+           <div className="w-16 h-16 bg-slate-900 text-white rounded-[1.5rem] flex items-center justify-center text-2xl shrink-0 shadow-2xl transform transition-transform group-hover:rotate-12">
+              🚒
            </div>
         </div>
       )}
 
-      {/* AI Coach */}
-      <div className="bg-slate-900 p-6 rounded-[2.5rem] shadow-2xl text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-fire-red/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+      {/* AI AI AI Coach Section */}
+      <div className="bg-slate-900 p-8 rounded-[3.2rem] shadow-2xl text-white relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-full -mr-20 -mt-20 blur-[80px] pointer-events-none group-hover:scale-150 transition-transform duration-[2s]"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-fire-red/5 rounded-full -ml-10 -mb-10 blur-[60px] pointer-events-none"></div>
+        
         <div className="relative z-10">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center text-2xl shadow-xl">🤖</div>
+          <div className="flex items-center gap-5 mb-8">
+            <div className="w-16 h-16 rounded-[1.8rem] bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 flex items-center justify-center text-3xl shadow-3xl transform group-hover:rotate-6 transition-transform">🤖</div>
             <div>
-              <h3 className="font-black italic uppercase text-sm tracking-tighter">Coach Opérationnel</h3>
-              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Conseils personnalisés</p>
+              <h3 className="font-black italic uppercase text-xl leading-none tracking-tighter mb-1">Elite Coach AI</h3>
+              <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-[0.2em] opacity-80">Parade Opérationnelle v2.4</p>
             </div>
           </div>
           
           {advice ? (
-            <div className="bg-white/5 backdrop-blur-md p-5 rounded-2xl text-sm font-bold leading-relaxed mb-4 border border-white/10 italic">
+            <div className="bg-white/10 backdrop-blur-xl p-6 rounded-[2.2rem] text-sm font-semibold leading-relaxed mb-6 border border-white/20 italic shadow-inner animate-in fade-in slide-in-from-bottom-2">
               "{advice}"
             </div>
           ) : (
-            <p className="text-xs text-slate-400 font-bold mb-6 leading-relaxed">
-              Consultez votre analyse de profil pour optimiser votre parcours de formation.
-            </p>
+            <div className="space-y-4 mb-8">
+               <p className="text-[11px] text-slate-300 font-bold leading-relaxed uppercase tracking-wide">
+                L'intelligence artificielle analyse votre spécialité et vos échéances pour vous proposer la meilleure trajectoire de carrière.
+              </p>
+            </div>
           )}
 
           <button 
             onClick={handleGetCoachAdvice}
             disabled={loadingAdvice}
-            className="w-full py-4 bg-white text-slate-900 font-black text-[11px] uppercase tracking-widest rounded-2xl shadow-xl hover:bg-slate-100 transition-all flex items-center justify-center gap-3"
+            className={`w-full py-5 rounded-[2rem] font-black text-[12px] uppercase tracking-[0.25em] shadow-2xl transition-all flex items-center justify-center gap-4 ${
+              loadingAdvice ? 'bg-slate-800' : 'bg-white text-slate-900 hover:bg-fire-red hover:text-white'
+            }`}
           >
             {loadingAdvice ? (
-              <div className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin"></div>
+              <div className="w-6 h-6 border-3 border-white/20 border-t-white rounded-full animate-spin"></div>
             ) : (
-              "Lancer l'analyse AI"
+              advice ? "Réactualiser le Diagnostic" : "Lancer le Diagnostic Carrière"
             )}
           </button>
         </div>
@@ -193,3 +202,4 @@ const Dashboard: React.FC<DashboardProps> = ({ user, trainings }) => {
 };
 
 export default Dashboard;
+

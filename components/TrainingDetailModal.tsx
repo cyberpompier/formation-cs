@@ -29,12 +29,10 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
   const [showConfirmRegister, setShowConfirmRegister] = useState(false);
   const [showConfirmUnregister, setShowConfirmUnregister] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
-  const [showConfirmValidate, setShowConfirmValidate] = useState(false); // New state for validation confirmation
+  const [showConfirmValidate, setShowConfirmValidate] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Training>(training);
 
-  // Gestion de la feuille de présence (Checklist)
-  // Initialisé avec tous les inscrits marqués comme présents
   const [attendance, setAttendance] = useState<Record<string, boolean>>(() => {
     const initialState: Record<string, boolean> = {};
     training.registeredUserIds.forEach(id => {
@@ -47,16 +45,12 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
   const isFull = training.registeredUserIds.length >= training.slots;
   const isTrainingCompleted = training.isCompleted;
   
-  // Peut éditer les infos : Admin ou Formateur
   const canEdit = currentUser.isTrainer || currentUser.isAdmin;
-  
-  // Peut clôturer/valider le stage : ADMIN SEULEMENT
   const canValidate = currentUser.isAdmin;
 
   let canRegister = true;
   let blockReason = '';
 
-  // Vérification dynamique de la validité FCES pour la date du stage
   const isFcesValidForThisTraining = isFcesValidForTraining(currentUser.fcesDate, training.date);
 
   if (!isFcesValidForThisTraining && training.type !== TrainingType.SUAP) {
@@ -143,255 +137,138 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
   };
 
   return (
-    /* Passage à z-[60] pour recouvrir la barre de navigation z-50 */
-    <div className="fixed inset-0 bg-slate-900/98 backdrop-blur-lg z-[60] flex items-center justify-center animate-in fade-in duration-300">
-      <div className="bg-white rounded-none w-full h-full relative animate-in slide-in-from-bottom duration-500 flex flex-col shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 bg-slate-900/95 backdrop-blur-xl z-[60] flex items-center justify-center p-0 md:p-4 animate-fade-in">
+      <div className="bg-white w-full h-full md:h-[95vh] md:max-w-xl md:rounded-[3rem] relative shadow-2xl overflow-hidden flex flex-col animate-slide-in-bottom">
         
-        {/* BOUTON ÉDITION - En haut à gauche */}
-        {!isEditing && canEdit && (
+        {/* Top Control Bar (Sticky) */}
+        <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-[75] pointer-events-none">
+          <div className="pointer-events-auto">
+            {!isEditing && canEdit && (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="w-12 h-12 flex items-center justify-center bg-white/10 backdrop-blur-md rounded-full shadow-2xl transition-all active:scale-75 border border-white/20 text-white hover:bg-white hover:text-fire-red"
+              >
+                ✏️
+              </button>
+            )}
+          </div>
           <button
-            onClick={() => setIsEditing(true)}
-            className="absolute top-6 left-6 z-[70] w-14 h-14 flex items-center justify-center bg-white/90 rounded-full shadow-2xl transition-all active:scale-75 border border-slate-100 text-slate-900 hover:text-fire-red hover:bg-white"
+            onClick={onClose}
+            className="w-12 h-12 pointer-events-auto flex items-center justify-center bg-white/10 backdrop-blur-md rounded-full shadow-2xl transition-all active:scale-75 border border-white/20 text-white text-2xl hover:bg-white hover:text-slate-900"
           >
-            ✏️
+            &times;
           </button>
-        )}
+        </div>
 
-        {/* Bouton de Fermeture flottant - z-index 70 pour rester au-dessus de tout */}
-        <button
-          onClick={onClose}
-          className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 text-4xl z-[70] w-14 h-14 flex items-center justify-center bg-white/90 rounded-full shadow-2xl transition-all active:scale-75 border border-slate-100"
-        >
-          &times;
-        </button>
-
-        {/* 1. Hero Section (Fixe en haut) */}
-        <div className="relative h-60 bg-slate-200 shrink-0 group">
+        {/* 1. Hero Section (Visual Background) */}
+        <div className="relative h-80 bg-slate-900 shrink-0">
           <img 
-            src={formData.image || `https://picsum.photos/400/200?random=${training.id}`} 
+            src={formData.image || `https://picsum.photos/600/400?random=${training.id}`} 
             alt={training.title} 
-            className="w-full h-full object-cover" 
+            className="w-full h-full object-cover opacity-60 scale-105" 
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/10 to-transparent"></div>
           
-          <div className="absolute bottom-6 left-6 right-6">
+          <div className="absolute bottom-10 left-8 right-8 space-y-3">
             {isEditing ? (
-              <div className="mb-3">
+              <div className="flex flex-col gap-3">
                  <select
                   name="type"
                   value={formData.type}
                   onChange={handleInputChange}
-                  className="bg-fire-red text-white text-[10px] font-black px-4 py-2 rounded-lg uppercase tracking-widest shadow-xl outline-none border-2 border-white/20 cursor-pointer"
+                  className="w-fit bg-fire-red text-white text-[10px] font-black px-4 py-2 rounded-xl uppercase tracking-widest shadow-xl outline-none border-2 border-white/20"
                  >
                    {Object.values(TrainingType).map(t => (
                      <option key={t} value={t} className="text-slate-900">{t}</option>
                    ))}
                  </select>
+                 <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    className="w-full bg-white/10 backdrop-blur-md border-b-2 border-white/50 focus:border-fire-red text-3xl font-black text-white uppercase italic tracking-tighter outline-none p-2 rounded-lg"
+                  />
               </div>
             ) : (
-              <span className="bg-fire-red text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-xl mb-3 inline-block">
-                {training.type}
-              </span>
-            )}
-            
-            {isEditing ? (
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                className="w-full bg-transparent border-b-2 border-white/50 focus:border-fire-red text-2xl font-black text-white uppercase italic tracking-tighter outline-none placeholder-white/50"
-              />
-            ) : (
-              <h2 className="text-2xl font-black text-white leading-none uppercase italic tracking-tighter">{training.title}</h2>
+              <>
+                <span className="bg-fire-red text-white text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-[0.2em] shadow-xl inline-block">
+                  {training.type}
+                </span>
+                <h2 className="text-4xl font-black text-slate-900 leading-[0.9] uppercase italic tracking-tighter drop-shadow-sm">
+                  {training.title}
+                </h2>
+              </>
             )}
           </div>
-
+          
           {isEditing && (
-             <div className="absolute top-6 left-24 right-24">
+             <div className="absolute top-20 left-8 right-8">
                 <input 
                   type="text" 
                   name="image" 
                   value={formData.image || ''} 
                   onChange={handleInputChange}
-                  placeholder="URL de l'image" 
-                  className="w-full bg-black/50 backdrop-blur text-white text-xs p-2 rounded-lg border border-white/20"
+                  placeholder="URL de l'image de fond" 
+                  className="w-full bg-black/40 backdrop-blur-md text-white text-[10px] font-bold p-3 rounded-xl border border-white/20 placeholder:text-white/40"
                 />
              </div>
           )}
         </div>
 
-        {/* 2. Contenu de la formation (Déroulable) */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-8 pb-24">
+        {/* 2. Main Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-none pb-40">
           
-          {/* Dashboard d'informations */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Date */}
-            <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100">
-              <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Date</p>
+          {/* Quick Info Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-slate-50/50 p-5 rounded-[2rem] border border-slate-100 flex flex-col justify-center transition-all hover:bg-slate-50">
+              <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Date & Heure</p>
               {isEditing ? (
-                 <input
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleInputChange}
-                  className="w-full bg-white p-2 rounded-lg font-bold text-slate-900 text-sm outline-none border focus:border-fire-red"
-                 />
+                <div className="space-y-2">
+                  <input type="date" name="date" value={formData.date} onChange={handleInputChange} className="w-full bg-white p-2 rounded-xl text-xs font-bold border" />
+                  <input type="time" name="startTime" value={formData.startTime || ''} onChange={handleInputChange} className="w-full bg-white p-2 rounded-xl text-xs font-bold border" />
+                </div>
               ) : (
-                <p className="font-black text-slate-900 text-base uppercase italic">{new Date(formData.date).toLocaleDateString('fr-FR')}</p>
-              )}
-            </div>
-
-            {/* Places */}
-            <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100">
-              <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Places Totales</p>
-              {isEditing ? (
-                 <input
-                  type="number"
-                  name="slots"
-                  value={formData.slots}
-                  onChange={handleInputChange}
-                  className="w-full bg-white p-2 rounded-lg font-bold text-slate-900 text-sm outline-none border focus:border-fire-red"
-                 />
-              ) : (
-                <p className="font-black text-slate-900 text-base uppercase italic">
-                  {training.slots - training.registeredUserIds.length} libres / {training.slots}
+                <p className="font-black text-slate-900 text-lg uppercase italic leading-none">
+                  {new Date(formData.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })} <span className="text-fire-red">•</span> {formData.startTime || '08:00'}
                 </p>
               )}
             </div>
 
-            {/* Heure et Durée */}
-            <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100">
-              <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Heure Début</p>
+            <div className="bg-slate-50/50 p-5 rounded-[2rem] border border-slate-100 flex flex-col justify-center transition-all hover:bg-slate-50">
+              <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Disponibilité</p>
               {isEditing ? (
-                 <input
-                  type="time"
-                  name="startTime"
-                  value={formData.startTime || ''}
-                  onChange={handleInputChange}
-                  className="w-full bg-white p-2 rounded-lg font-bold text-slate-900 text-sm outline-none border focus:border-fire-red"
-                 />
+                 <input type="number" name="slots" value={formData.slots} onChange={handleInputChange} className="w-full bg-white p-2 rounded-xl text-xs font-bold border" />
               ) : (
-                <p className="font-black text-slate-900 text-base uppercase italic">{formData.startTime || '08:00'}</p>
-              )}
-            </div>
-
-            <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100">
-              <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Durée (Jours)</p>
-              {isEditing ? (
-                 <input
-                  type="number"
-                  name="durationDays"
-                  min="1"
-                  value={formData.durationDays || 1}
-                  onChange={handleInputChange}
-                  className="w-full bg-white p-2 rounded-lg font-bold text-slate-900 text-sm outline-none border focus:border-fire-red"
-                 />
-              ) : (
-                <p className="font-black text-slate-900 text-base uppercase italic">{formData.durationDays || 1} jour(s)</p>
-              )}
-            </div>
-
-             <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100">
-              <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Heures / Jour</p>
-              {isEditing ? (
-                 <input
-                  type="number"
-                  name="hoursPerDay"
-                  min="1"
-                  max="24"
-                  value={formData.hoursPerDay || 7}
-                  onChange={handleInputChange}
-                  className="w-full bg-white p-2 rounded-lg font-bold text-slate-900 text-sm outline-none border focus:border-fire-red"
-                 />
-              ) : (
-                <p className="font-black text-slate-900 text-base uppercase italic">{formData.hoursPerDay || 7}h</p>
-              )}
-            </div>
-
-            {/* Lieu */}
-            <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100 flex justify-between items-center">
-              <div className="w-full mr-4">
-                <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Lieu</p>
-                {isEditing ? (
-                   <input
-                    type="text"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleInputChange}
-                    className="w-full bg-white p-2 rounded-lg font-bold text-slate-900 text-sm outline-none border focus:border-fire-red"
-                   />
-                ) : (
-                  <p className="font-black text-slate-900 uppercase italic truncate">{formData.location}</p>
-                )}
-              </div>
-              {!isEditing && (
-                <a href={googleMapsLink} target="_blank" rel="noopener noreferrer" className="bg-white p-3 rounded-xl shadow-md border border-slate-200 text-fire-red active:scale-90 transition-transform">
-                  📍
-                </a>
+                <p className="font-black text-slate-900 text-lg uppercase italic leading-none">
+                  {training.slots - training.registeredUserIds.length} <span className="text-slate-300 font-medium">/ {training.slots}</span>
+                </p>
               )}
             </div>
           </div>
 
-          {/* Formateurs (Visible en tout temps, éditable en mode édition) */}
-          <section>
-            <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em] mb-3 border-l-4 border-fire-red pl-3">Encadrement</h3>
-            <div className="grid grid-cols-2 gap-3">
-               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                 <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">Formateur 1</p>
-                 {isEditing ? (
-                   <input type="text" name="trainer1" value={formData.trainer1 || ''} onChange={handleInputChange} className="w-full text-xs font-bold bg-white p-1 rounded border" placeholder="Nom du formateur" />
-                 ) : (
-                   <p className="text-xs font-bold text-slate-900">{formData.trainer1 || 'Non défini'}</p>
-                 )}
-               </div>
-               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                 <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">Formateur 2</p>
-                 {isEditing ? (
-                   <input type="text" name="trainer2" value={formData.trainer2 || ''} onChange={handleInputChange} className="w-full text-xs font-bold bg-white p-1 rounded border" placeholder="Optionnel" />
-                 ) : (
-                   <p className="text-xs font-bold text-slate-900">{formData.trainer2 || '-'}</p>
-                 )}
-               </div>
-            </div>
-          </section>
+          {/* Location Bar */}
+          <div className="flex items-center gap-4 bg-slate-900 p-2 pl-6 rounded-[2rem] shadow-xl group transition-all hover:bg-black">
+             <div className="flex-1 overflow-hidden">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Localisation</p>
+                {isEditing ? (
+                  <input type="text" name="location" value={formData.location} onChange={handleInputChange} className="w-full bg-transparent text-white text-sm font-bold outline-none border-b border-white/20 pb-1" />
+                ) : (
+                  <p className="font-bold text-white text-sm uppercase italic truncate">{formData.location}</p>
+                )}
+             </div>
+             {!isEditing && (
+               <a href={googleMapsLink} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-xl shadow-lg transition-transform active:scale-90 group-hover:rotate-12">
+                 📍
+               </a>
+             )}
+          </div>
 
-          {/* Pré-requis (Editable) */}
-          {(isEditing || formData.prerequisites.length > 0) && (
-            <section>
-              <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em] mb-3 border-l-4 border-fire-red pl-3">Pré-requis</h3>
-              {isEditing ? (
-                <div className="flex flex-wrap gap-2 p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                  {ALL_QUALIFICATIONS.map(qual => (
-                    <button
-                      key={qual}
-                      onClick={() => handleTogglePrerequisite(qual)}
-                      className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all ${
-                        formData.prerequisites.includes(qual)
-                          ? 'bg-fire-red text-white shadow-md'
-                          : 'bg-white text-slate-400 border border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      {qual}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                 <div className="flex flex-wrap gap-2">
-                    {formData.prerequisites.map(p => (
-                      <span key={p} className="bg-slate-900 text-white text-[10px] font-black px-3 py-1.5 rounded-xl shadow-md uppercase">
-                        {p}
-                      </span>
-                    ))}
-                 </div>
-              )}
-            </section>
-          )}
-
-          {/* Description pédagogique */}
-          <section>
-            <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em] mb-3 border-l-4 border-fire-red pl-3">
-              Programme du stage
+          {/* Pedagogical Content */}
+          <section className="space-y-4">
+            <h3 className="text-[12px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
+              <span className="w-8 h-[2px] bg-fire-red"></span>
+              Objectifs Pédagogiques
             </h3>
             {isEditing ? (
               <textarea
@@ -399,261 +276,260 @@ const TrainingDetailModal: React.FC<TrainingDetailModalProps> = ({
                 value={formData.description}
                 onChange={handleInputChange}
                 rows={5}
-                className="w-full bg-slate-50 p-4 rounded-2xl font-bold text-sm text-slate-900 leading-relaxed outline-none border focus:border-fire-red resize-none"
+                className="w-full bg-slate-50 p-6 rounded-[2rem] font-medium text-sm text-slate-900 leading-relaxed outline-none border-2 border-slate-100 focus:border-fire-red resize-none"
               />
             ) : (
-              <p className="text-slate-600 leading-relaxed font-bold text-sm">
-                {formData.description}
-              </p>
+              <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-50"></div>
+                <p className="text-slate-600 leading-relaxed font-medium text-base relative z-10 whitespace-pre-wrap">
+                  {formData.description}
+                </p>
+              </div>
             )}
           </section>
 
-          {/* Liste des participants (Caché en mode édition pour focus) */}
+          {/* Participants */}
           {!isEditing && (
-            <section>
-              <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em] mb-4 border-l-4 border-fire-red pl-3">
-                Agents déjà engagés ({registeredParticipants.length})
-              </h3>
-              <div className="space-y-3 mb-8">
+            <section className="space-y-6">
+              <div className="flex justify-between items-end px-2">
+                <h3 className="text-[12px] font-black text-slate-900 uppercase tracking-[0.2em]">
+                  Agents Inscrits
+                </h3>
+                <span className="text-[10px] font-black text-slate-400 uppercase bg-slate-100 px-3 py-1 rounded-full">
+                  {registeredParticipants.length} / {training.slots}
+                </span>
+              </div>
+              <div className="grid gap-3">
                 {registeredParticipants.length > 0 ? (
                   registeredParticipants.map(participant => (
-                    <div key={participant.id} className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-100 rounded-[1.5rem]">
-                      <span className="text-2xl shrink-0">{renderRankIcon(participant.rank)}</span>
+                    <div key={participant.id} className="flex items-center gap-4 p-4 bg-white border border-slate-100 rounded-[2rem] shadow-sm hover:border-slate-200 transition-all hover:translate-x-1">
+                      <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-2xl shadow-inner ring-1 ring-slate-100 italic">
+                        {renderRankIcon(participant.rank)}
+                      </div>
                       <div className="flex-1">
-                        <p className="font-black text-slate-900 leading-none mb-1 uppercase italic">
+                        <p className="font-black text-slate-900 text-sm uppercase italic tracking-tight">
                           {participant.rank} {participant.lastName}
                         </p>
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{participant.center}</p>
+                        <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">{participant.firstName}</p>
                       </div>
                       {participant.id === currentUser.id && (
-                        <span className="bg-fire-red text-white text-[8px] font-black px-3 py-1 rounded-full uppercase shadow-lg">Moi</span>
+                        <div className="flex items-center gap-2 bg-emerald-50 text-emerald-600 text-[8px] font-black px-3 py-1.5 rounded-full uppercase border border-emerald-100">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          Moi
+                        </div>
                       )}
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
-                    <p className="text-slate-300 font-black italic text-[10px] uppercase tracking-widest">En attente d'inscriptions</p>
+                  <div className="py-12 text-center rounded-[3rem] border-2 border-dashed border-slate-100 bg-slate-50/30">
+                    <p className="text-slate-300 font-black uppercase text-[10px] tracking-[0.3em]">Session vide</p>
                   </div>
                 )}
               </div>
             </section>
           )}
 
-          {/* ACTIONS */}
-          <div className="space-y-4 pt-4 border-t border-slate-100">
-            {isEditing ? (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                   <button
-                    onClick={handleCancelEdit}
-                    className="w-full py-5 rounded-[1.5rem] bg-slate-100 text-slate-600 font-black text-[12px] uppercase tracking-widest active:scale-95 transition-all"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    className="w-full py-5 rounded-[1.5rem] bg-fire-red text-white font-black text-[12px] uppercase tracking-widest shadow-xl shadow-red-200 active:scale-95 transition-all"
-                  >
-                    Enregistrer
-                  </button>
+          {/* Formateurs / Prerequisites section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+             <section className="space-y-3">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Encadrement</p>
+                <div className="bg-slate-50 p-5 rounded-3xl space-y-1 border border-slate-100">
+                   <p className="text-sm font-black text-slate-900 truncate uppercase italic">{formData.trainer1 || 'À confirmer'}</p>
+                   {formData.trainer2 && <p className="text-[10px] font-bold text-slate-400 uppercase">{formData.trainer2}</p>}
                 </div>
-                
+             </section>
+             
+             {formData.prerequisites.length > 0 && (
+               <section className="space-y-3">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pré-requis</p>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.prerequisites.map(p => (
+                      <span key={p} className="bg-slate-900 text-white text-[9px] font-black px-4 py-2 rounded-xl shadow-sm uppercase tracking-wide">
+                        {p}
+                      </span>
+                    ))}
+                  </div>
+               </section>
+             )}
+          </div>
+        </div>
+
+        {/* 3. Bottom Action Bar (Fixed) */}
+        <div className="absolute bottom-0 left-0 right-0 p-8 pt-4 pb-12 bg-gradient-to-t from-white via-white/95 to-transparent pointer-events-none z-[80]">
+          <div className="container mx-auto max-w-lg pointer-events-auto">
+            {isEditing ? (
+              <div className="flex gap-4">
                 <button
-                  onClick={() => setShowConfirmDelete(true)}
-                  className="w-full py-4 rounded-[1.5rem] border-2 border-red-50 text-red-500 font-black text-[10px] uppercase tracking-widest hover:bg-red-50 active:scale-95 transition-all"
+                  onClick={handleCancelEdit}
+                  className="flex-1 py-5 rounded-[2rem] bg-slate-100 text-slate-900 font-black text-[11px] uppercase tracking-widest active:scale-95 transition-all shadow-lg shadow-slate-100/50"
                 >
-                  Supprimer ce stage
+                  Annuler
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="flex-[2] py-5 rounded-[2rem] bg-fire-red text-white font-black text-[11px] uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-red-500/20"
+                >
+                  Sauvegarder
                 </button>
               </div>
             ) : (
-              <>
-                 {/* BOUTON ADMIN UNIQUEMENT: Valider le stage */}
-                 {canValidate && !isTrainingCompleted && (
+              <div className="space-y-4">
+                {canValidate && !isTrainingCompleted && (
                    <button
                      onClick={() => setShowConfirmValidate(true)}
-                     className="w-full py-4 rounded-[1.5rem] bg-green-600 text-white font-black text-[11px] uppercase tracking-widest shadow-xl shadow-green-200 active:scale-95 transition-all mb-2 flex items-center justify-center gap-2"
+                     className="w-full py-4 rounded-[2rem] bg-emerald-500 text-white font-black text-[11px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-3"
                    >
-                     ✅ Valider / Clôturer le stage
+                     ✅ Clôturer la session
                    </button>
-                 )}
+                )}
 
-                 {isTrainingCompleted ? (
-                   <div className="w-full py-5 rounded-[1.5rem] bg-green-50 border-2 border-green-100 text-green-700 font-black text-[12px] uppercase tracking-widest text-center italic">
-                     ✓ Session validée et clôturée
+                {isTrainingCompleted ? (
+                   <div className="w-full py-6 rounded-[2.5rem] bg-slate-900 text-white font-black text-xs uppercase tracking-[0.2em] text-center italic shadow-2xl transition-all">
+                     Session terminée
                    </div>
-                 ) : isRegistered ? (
-                   <button
-                     onClick={() => setShowConfirmUnregister(true)}
-                     className="w-full py-6 rounded-[1.5rem] bg-slate-900 text-white font-black text-[12px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
-                   >
-                     Se désister de ce stage
-                   </button>
-                 ) : (
-                   <div className="space-y-3">
-                     {/* Affichage des pré-requis manquants */}
-                     {!isRegistered && missingPreqs.length > 0 && (
-                       <div className="bg-red-50 p-5 rounded-[2rem] border border-red-100 mb-2">
-                         <p className="text-[10px] font-black text-red-600 uppercase mb-3 tracking-widest flex items-center gap-2">
-                           <span className="animate-pulse">⚠️</span> Diplômes manquants à votre profil :
-                         </p>
-                         <div className="flex flex-wrap gap-2">
-                           {missingPreqs.map(p => (
-                             <span key={p} className="bg-fire-red text-white text-[10px] font-black px-3 py-1.5 rounded-xl shadow-md uppercase">
-                               {p}
-                             </span>
-                           ))}
-                         </div>
+                ) : isRegistered ? (
+                  <button
+                    onClick={() => setShowConfirmUnregister(true)}
+                    className="w-full py-6 rounded-[2.5rem] bg-slate-900 text-white font-black text-[11px] uppercase tracking-[0.3em] shadow-2xl active:scale-95 transition-all hover:bg-black"
+                  >
+                    Se désister
+                  </button>
+                ) : (
+                  <div className="space-y-3">
+                    {!canRegister && blockReason && (
+                       <div className="text-center p-3 rounded-2xl bg-red-50 text-red-500 text-[9px] font-black uppercase tracking-widest border border-red-100 flex items-center justify-center gap-2 animate-pulse">
+                        <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                        {blockReason}
                        </div>
-                     )}
-
-                     <button
-                       onClick={() => setShowConfirmRegister(true)}
-                       disabled={!canRegister}
-                       className={`w-full py-6 rounded-[1.5rem] font-black text-[12px] uppercase tracking-widest shadow-2xl transition-all active:scale-95 ${
-                         canRegister 
-                           ? 'bg-fire-red text-white shadow-red-200' 
-                           : 'bg-slate-200 text-slate-400 cursor-not-allowed border-2 border-slate-300 shadow-none'
-                       }`}
-                     >
-                       {canRegister ? "Confirmer mon inscription" : `Inscription bloquée`}
-                     </button>
-                     {!canRegister && (
-                       <p className="text-center text-[10px] font-black text-red-500 uppercase tracking-widest bg-red-50 py-3 rounded-2xl border border-red-100">
-                         Motif : {blockReason}
-                       </p>
-                     )}
-                   </div>
-                 )}
-              </>
+                    )}
+                    <button
+                      onClick={() => setShowConfirmRegister(true)}
+                      disabled={!canRegister}
+                      className={`w-full py-6 rounded-[2.5rem] font-black text-[12px] uppercase tracking-[0.3em] shadow-2xl transition-all active:scale-95 ${
+                        canRegister 
+                          ? 'bg-fire-red text-white shadow-red-500/30 hover:bg-red-700' 
+                          : 'bg-slate-100 text-slate-300 cursor-not-allowed border border-slate-100'
+                      }`}
+                    >
+                      {canRegister ? "M'inscrire au stage" : "Session restreinte"}
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
-      </div>
 
-      {/* Confirmation Inscription (Overlay supérieur) */}
-      {showConfirmRegister && (
-        <div className="fixed inset-0 bg-slate-900/95 z-[100] flex items-center justify-center p-8 animate-in zoom-in duration-200">
-          <div className="bg-white rounded-[3rem] p-10 w-full max-w-sm text-center shadow-2xl border border-slate-100">
-            <div className="text-6xl mb-8">📝</div>
-            <h4 className="text-2xl font-black text-slate-900 mb-4 uppercase italic leading-none">Confirmer ?</h4>
-            <p className="text-sm text-slate-500 font-bold mb-10 leading-relaxed uppercase tracking-widest">
-              Validez-vous votre inscription à ce stage ? Votre présence sera requise.
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-              <button onClick={() => setShowConfirmRegister(false)} className="py-5 rounded-2xl bg-slate-100 text-slate-600 font-black text-xs uppercase tracking-widest active:scale-95 transition-all">Retour</button>
-              <button 
-                onClick={() => { onRegister(training.id); setShowConfirmRegister(false); }} 
-                className="py-5 rounded-2xl bg-fire-red text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-red-200 active:scale-95 transition-all"
-              >
-                M'inscrire
-              </button>
+        {/* Action Confirms */}
+        {showConfirmRegister && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-8 animate-fade-in">
+            <div className="bg-white rounded-[4rem] p-10 w-full max-w-sm text-center shadow-3xl border border-slate-100 animate-zoom-in">
+              <div className="text-6xl mb-8">🚒</div>
+              <h4 className="text-2xl font-black text-slate-900 mb-2 uppercase italic leading-none">Confirmer ?</h4>
+              <p className="text-[10px] text-slate-400 font-bold mb-10 leading-relaxed uppercase tracking-widest">
+                Validez-vous votre participation à cette session de formation ?
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <button onClick={() => setShowConfirmRegister(false)} className="py-5 rounded-3xl bg-slate-100 text-slate-600 font-black text-[10px] uppercase tracking-[0.2em] active:scale-95 transition-all">Retour</button>
+                <button 
+                  onClick={() => { onRegister(training.id); setShowConfirmRegister(false); }} 
+                  className="py-5 rounded-3xl bg-fire-red text-white font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-red-200 active:scale-95 transition-all"
+                >
+                  Valider
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Confirmation Désistement (Overlay supérieur) */}
-      {showConfirmUnregister && (
-        <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-8 animate-in zoom-in duration-200">
-          <div className="bg-white rounded-[3rem] p-10 w-full max-w-sm text-center shadow-2xl border border-slate-100">
-            <div className="text-6xl mb-8">🚪</div>
-            <h4 className="text-2xl font-black text-slate-900 mb-4 uppercase italic leading-none">Annuler ?</h4>
-            <p className="text-sm text-slate-500 font-bold mb-10 leading-relaxed uppercase tracking-widest">
-              Voulez-vous libérer votre place pour un autre agent ?
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-              <button onClick={() => setShowConfirmUnregister(false)} className="py-5 rounded-2xl bg-slate-100 text-slate-600 font-black text-xs uppercase tracking-widest active:scale-95 transition-all">Retour</button>
-              <button 
-                onClick={() => { onUnregister(training.id); setShowConfirmUnregister(false); }} 
-                className="py-5 rounded-2xl bg-red-600 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-red-200 active:scale-95 transition-all"
-              >
-                Confirmer
-              </button>
+        {showConfirmUnregister && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-8 animate-fade-in">
+            <div className="bg-white rounded-[4rem] p-10 w-full max-w-sm text-center shadow-3xl border border-slate-100 animate-zoom-in">
+              <div className="text-6xl mb-8">🚪</div>
+              <h4 className="text-2xl font-black text-slate-900 mb-2 uppercase italic leading-none">Annuler ?</h4>
+              <p className="text-[10px] text-slate-400 font-bold mb-10 leading-relaxed uppercase tracking-widest">
+                Souhaitez-vous vraiment vous désinscrire de ce stage ?
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <button onClick={() => setShowConfirmUnregister(false)} className="py-5 rounded-3xl bg-slate-100 text-slate-600 font-black text-[10px] uppercase tracking-[0.2em] active:scale-95 transition-all">Retour</button>
+                <button 
+                  onClick={() => { onUnregister(training.id); setShowConfirmUnregister(false); }} 
+                  className="py-5 rounded-3xl bg-slate-900 text-white font-black text-[10px] uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all"
+                >
+                  Confirmer
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Confirmation Validation Stage + Feuille d'Appel (Overlay supérieur) */}
-      {showConfirmValidate && (
-        <div className="fixed inset-0 bg-green-900/95 z-[100] flex items-center justify-center p-4 animate-in zoom-in duration-200">
-          <div className="bg-white rounded-[3rem] p-8 w-full max-w-sm text-center shadow-2xl border-4 border-green-500 flex flex-col max-h-[85vh]">
-            <div className="shrink-0">
-               <div className="text-6xl mb-4">✅</div>
-               <h4 className="text-2xl font-black text-green-600 mb-2 uppercase italic leading-none">Clôturer ?</h4>
-               <p className="text-[10px] text-slate-500 font-bold mb-4 leading-relaxed uppercase tracking-widest">
-                 Veuillez confirmer la présence des agents. Seuls les présents recevront leurs heures.
-               </p>
-            </div>
-
-            {/* Liste de présence (scrollable) */}
-            <div className="flex-1 overflow-y-auto mb-6 bg-slate-50 rounded-2xl border border-slate-200 p-2 space-y-2">
-               {registeredParticipants.map(p => (
-                 <div 
-                   key={p.id} 
-                   onClick={() => handleToggleAttendance(p.id)}
-                   className={`flex items-center justify-between p-3 rounded-xl cursor-pointer border-2 transition-all active:scale-95 ${
-                     attendance[p.id] ? 'bg-white border-green-500 shadow-md' : 'bg-slate-100 border-transparent opacity-60'
-                   }`}
-                 >
-                   <div className="flex items-center gap-3 text-left">
-                     <span className="text-xl">{renderRankIcon(p.rank)}</span>
-                     <div>
-                       <p className={`text-xs font-black uppercase ${attendance[p.id] ? 'text-slate-900' : 'text-slate-400 decoration-line-through'}`}>
-                         {p.lastName}
-                       </p>
+        )}
+        
+        {showConfirmValidate && (
+          <div className="fixed inset-0 bg-emerald-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fade-in">
+             <div className="bg-white rounded-[4rem] p-8 w-full max-w-md text-center shadow-3xl border border-emerald-100 flex flex-col max-h-[85vh] animate-zoom-in">
+                <div className="shrink-0 mb-6">
+                   <div className="text-5xl mb-4 text-emerald-500">📋</div>
+                   <h4 className="text-2xl font-black text-slate-900 mb-2 uppercase italic">Appel</h4>
+                   <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">Cochez les agents présents.</p>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto mb-8 bg-slate-50/50 rounded-[3rem] p-4 space-y-3 border border-slate-100 scrollbar-none">
+                   {registeredParticipants.map(p => (
+                     <div 
+                       key={p.id}
+                       onClick={() => handleToggleAttendance(p.id)}
+                       className={`flex items-center gap-4 p-4 rounded-3xl cursor-pointer transition-all border-2 ${
+                         attendance[p.id] 
+                          ? 'bg-white border-emerald-500 shadow-md scale-[1.02]' 
+                          : 'bg-transparent border-transparent opacity-40'
+                       }`}
+                     >
+                       <div className="text-2xl italic">{renderRankIcon(p.rank)}</div>
+                       <div className="flex-1 text-left">
+                         <p className="font-black text-slate-900 text-xs uppercase tracking-tight italic">{p.lastName}</p>
+                       </div>
+                       <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${
+                         attendance[p.id] ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-white border-slate-200'
+                       }`}>
+                         {attendance[p.id] && '✓'}
+                       </div>
                      </div>
-                   </div>
-                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs border-2 ${
-                     attendance[p.id] ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-slate-300 text-transparent'
-                   }`}>
-                     ✓
-                   </div>
-                 </div>
-               ))}
-               {registeredParticipants.length === 0 && (
-                 <p className="text-center text-slate-400 py-4 text-xs font-bold uppercase">Aucun inscrit</p>
-               )}
-            </div>
+                   ))}
+                </div>
 
-            <div className="grid grid-cols-2 gap-4 shrink-0">
-              <button onClick={() => setShowConfirmValidate(false)} className="py-5 rounded-2xl bg-slate-100 text-slate-600 font-black text-xs uppercase tracking-widest active:scale-95 transition-all">
-                Annuler
-              </button>
-              <button 
-                onClick={handleValidate}
-                className="py-5 rounded-2xl bg-green-600 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-green-200 active:scale-95 transition-all"
-              >
-                Valider
-              </button>
+                <div className="grid grid-cols-2 gap-4 shrink-0">
+                  <button onClick={() => setShowConfirmValidate(false)} className="py-5 rounded-[2rem] bg-slate-100 text-slate-400 font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">Annuler</button>
+                  <button 
+                    onClick={handleValidate} 
+                    className="py-5 rounded-[2rem] bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-500/30 active:scale-95 transition-all"
+                  >
+                    Clôturer
+                  </button>
+                </div>
+             </div>
+          </div>
+        )}
+
+        {showConfirmDelete && (
+          <div className="fixed inset-0 bg-red-600/20 backdrop-blur-sm z-[100] flex items-center justify-center p-8 animate-fade-in">
+            <div className="bg-white rounded-[4rem] p-10 w-full max-w-sm text-center shadow-3xl border-4 border-fire-red animate-zoom-in">
+              <div className="text-6xl mb-8">🗑️</div>
+              <h4 className="text-2xl font-black text-slate-900 mb-2 uppercase italic leading-none">Supprimer ?</h4>
+              <p className="text-[10px] text-slate-400 font-bold mb-10 leading-relaxed uppercase tracking-widest">
+                Action irréversible.
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <button onClick={() => setShowConfirmDelete(false)} className="py-5 rounded-3xl bg-slate-100 text-slate-600 font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">Retour</button>
+                <button 
+                  onClick={handleDelete} 
+                  className="py-5 rounded-3xl bg-red-600 text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-red-200 active:scale-95 transition-all"
+                >
+                  Supprimer
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Confirmation Suppression (Overlay supérieur) */}
-      {showConfirmDelete && (
-        <div className="fixed inset-0 bg-fire-red/90 z-[100] flex items-center justify-center p-8 animate-in zoom-in duration-200 backdrop-blur-sm">
-          <div className="bg-white rounded-[3rem] p-10 w-full max-w-sm text-center shadow-2xl border-4 border-red-500">
-            <div className="text-6xl mb-6">🗑️</div>
-            <h4 className="text-2xl font-black text-red-600 mb-4 uppercase italic leading-none">Supprimer ?</h4>
-            <p className="text-sm text-slate-500 font-bold mb-8 leading-relaxed uppercase tracking-widest">
-              Cette action est irréversible. Le stage sera retiré du catalogue.
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-              <button onClick={() => setShowConfirmDelete(false)} className="py-5 rounded-2xl bg-slate-100 text-slate-600 font-black text-xs uppercase tracking-widest active:scale-95 transition-all">
-                Annuler
-              </button>
-              <button 
-                onClick={handleDelete}
-                className="py-5 rounded-2xl bg-red-600 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-red-200 active:scale-95 transition-all"
-              >
-                Supprimer
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

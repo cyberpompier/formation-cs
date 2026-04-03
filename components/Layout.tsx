@@ -22,12 +22,18 @@ const Layout: React.FC<LayoutProps> = ({ currentUser }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
-      {/* Header */}
-      <header className="bg-fire-red text-white p-4 sticky top-0 z-50 shadow-md">
-        <h1 className="text-xl font-bold tracking-tight text-center">
-          {getPageTitle()}
-        </h1>
+    <div className="min-h-screen bg-slate-50 pb-24">
+      {/* Premium Header */}
+      <header className="bg-white/80 backdrop-blur-xl border-b border-slate-100 p-6 sticky top-0 z-[50] transition-all duration-500">
+        <div className="container mx-auto max-w-2xl flex items-center justify-between">
+           <h1 className="text-2xl font-black italic uppercase tracking-tighter text-slate-900">
+             {getPageTitle()}
+             <span className="text-fire-red ml-1">.</span>
+           </h1>
+           <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-xs shadow-lg ring-2 ring-white">
+             🚒
+           </div>
+        </div>
       </header>
 
       {/* Main Content */}
